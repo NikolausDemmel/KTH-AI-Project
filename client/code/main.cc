@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include "csocket.h"
+#include "board.h"
 
 int main(int pArgC, char* pArgs[])
 {
