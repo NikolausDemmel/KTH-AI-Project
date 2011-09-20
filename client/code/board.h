@@ -13,6 +13,8 @@
 #include <string>
 #include <cmath>
 #include <iostream>
+#include <cstring>
+
 
 using namespace std;
 
@@ -40,11 +42,25 @@ public:
 		cout << BoardToString() << endl;
 	}
 
-	string ToString() {
-		// TODO
+	char* BoardToString() {
+		char* board;
+		for(int j = 0; j<mHeight; j++)
+		{
+			for(int i = 0; i< mWidth; i++)
+			{
+			if(((mPlayerPos.x == i) && (mPlayerPos.y == j)) && (mBoard[TileIndex(i,j)] & TileGoal))
+				board[i] = '+';
+			else if(((mPlayerPos.x == i) && (mPlayerPos.y == j)) && (mBoard[TileIndex(i,j)] & TileEmpty))
+				board[i] = '@';
+			else
+				board[i] = TileCharacter(mBoard[TileIndex(i,j)]);
+			}
+			board[mWidth] = '\n';
+		}
+
+		return board;
 	}
 
-	// TODO: to-string operator
 
 	void ApplyMove(const Move &move); // TODO
 
@@ -82,12 +98,12 @@ private:
 				// FIXME: maybe find all unreachable regions and make them "invalid" straight away.
 				// for now we just fill trailing tiles with walls.
 				for(; x < width; ++x) {
-					mBoard[x][y] = TileWall; // FIXME
+					mBoard[TileIndex(x,y)] = TileWall; // FIXME
 				}
 				x = 0;
 				--y;
 			} else {
-				mBoard[x][y] = ParseTile(board[i]); // FIXME
+				mBoard[TileIndex(x,y)] = ParseTile(board[i]); // FIXME
 				if (board[i] == '@' || board[i] == '+') {
 					mPlayerPos = Pos(x,y);
 				}
@@ -129,13 +145,20 @@ private:
 		}
 	}
 
-	static char TileCharacter(uint8_t t) {
+	static char TileCharacter(uint8_t t) {  //FIXME player?
 		switch(t) {
 		case TileEmpty:
 			return ' ';
 		case TileWall:
 			return '#';
-			// TODO: finish
+		case TileBox:
+			return '$';
+		case TileGoal:
+			return '.';
+		case TileGoal | TileBox:
+			return '*';
+		default:
+			throw "Invalid tile type.";
 		}
 	}
 

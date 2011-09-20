@@ -15,7 +15,7 @@ enum Tile {
 	TileWall = 1,
 	TileGoal = 1 << 1,
 	TileBox = 1 << 2,
-	TileVisitedFlag 1 << 3
+	TileVisitedFlag =  1 << 3
 };
 
 enum Dir {
