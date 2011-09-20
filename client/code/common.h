@@ -5,6 +5,8 @@
  *      Author: demmeln
  */
 
+#include <stdint.h>
+
 #ifndef COMMON_H____
 #define COMMON_H____
 
@@ -15,7 +17,7 @@ enum Tile {
 	TileWall = 1,
 	TileGoal = 1 << 1,
 	TileBox = 1 << 2,
-	TileVisitedFlag =  1 << 3
+	TileVisitedFlag = 1 << 3
 };
 
 enum Dir {
@@ -38,6 +40,7 @@ public:
 		x = 0;
 		y = 0;
 	}
+
 
 	uint8_t x, y;
 };
