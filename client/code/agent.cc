@@ -21,22 +21,38 @@ void Agent::search(Board board){
 	// now we have to call findPath
 }
 
-string Agent::findPath(){
+string Agent::findPath(Board board){
 
-	/* 1st step: get position of the player.
-	 * find path to new position, which is the index of the box stored in the move and the opposite direction
-	 * find path by breadth first search - possible tiles are TileEmpty and TileGoal
-	 * we get the shortest path (if there are more paths)
-	 *
-	 *
-	 * save path into a string
-	 * then: applymove and save it, too
-	 * then we are on previous position of the 1st box.
-	 * next step: find path to next position and so on... don't forget to save :)
-	 * do this for all moves that provide the solution
-	 */
+	//1st step: get position of the player.
+	Pos Player = board.getPlayerPos();
+	 // find path to new position, which is the index of the box stored in the move and the opposite direction
+	 // loop over solutionMoves
+	 // find path by breadth first search - possible tiles are TileEmpty and TileGoal
+	 // we get the shortest path (if there are more paths)
+	 // save path into a string
+	 // then: applymove and save it, too
+	 // then we are on previous position of the 1st box.
+	 // next step: find path to next position and so on... don't forget to save :)
+	 // do this for all moves that provide the solution
 
 }
+
+
+
+vector<int> Agent::pathSearch(Board board, Pos start, Pos end){ // TODO
+
+	vector<int> path;
+	//path.push_back(board.TileIndex(start));
+
+		int current = board.TileIndex(start);
+		if(current == board.TileIndex(end))
+			return path; // TODO:  we want to return the string to the end-position
+
+		// TODO: find the shortest (?) path from start to end position, returning as a string would be fine
+		// if you treat it as a Move you can use one function for ToString
+		// so store pos + next dir
+	}
+
 
 bool Agent::dfs(Board board, int depth, vector<Move> &solutionMoves){
 

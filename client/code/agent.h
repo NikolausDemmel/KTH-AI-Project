@@ -29,10 +29,13 @@ public:
 	bool dfs(Board board, int depth, vector<Move> &solutionMoves);
 
 	// when we know how to do it, we should somehow create the paths between the moves
-	string findPath();
+	string findPath(Board board);
 
 	// when we know everything, we have to write the solution into a string and send it
 	string submitSolution();
+
+	//breadth first search for finding the shortest path to a certain pos
+	vector<int> pathSearch(Board board, Pos start, Pos end);
 
 private:
 

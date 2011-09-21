@@ -83,6 +83,7 @@ private:
 		return index >= 0 && index < mWidth*mHeight;
 	}
 
+public:
 	inline int TileIndex(int x, int y) const {
 		assert(IsIndex(mWidth * y + x));
 		return mWidth * y + x;
@@ -109,6 +110,7 @@ private:
 		}
 	}
 
+private:
 	inline Pos TileIndexToPos(int index) {
 		return Pos(index%mWidth, index/mWidth);
 	}
