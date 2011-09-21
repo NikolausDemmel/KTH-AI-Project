@@ -12,25 +12,27 @@ namespace mnp {
 
 
 
-
-char* Board::BoardToString() {
-	char* board;
-	for(int y = 0; y<mHeight; y++) {
+// TODO: rename to ToString(..) ?
+string Board::BoardToString(uint8_t printFlags = 0) const
+{
+	stringstream board;
+	for(int y = mHeight-1; y >= 0; --y) {
 		for (int x = 0; x < mWidth; x++) {
-			if (((mPlayerPos.x == x) && (mPlayerPos.y == mHeight-1-y))
-					&& (mBoard[TileIndex(x, mHeight-1-y)] == TileGoal))
-				board[x+y*(mWidth+1)] = '+';
-			else if ((mPlayerPos.x == x) && (mPlayerPos.y == mHeight-1-y)
-					&& (mBoard[TileIndex(x, mHeight-1-y)] == TileEmpty))
-				board[x+y*(mWidth+1)] = '@';
+			int index = TileIndex(x, y);
+			board << FlagString(mBoard[index], printFlags);
+			if ((mPlayerPos.x == x) && (mPlayerPos.y == y))
+				if (mBoard[index] & TileGoal)
+					board << '+';
+				else
+					board << '@';
 			else
-				board[x + y*(mWidth+1)] = TileCharacter(mBoard[TileIndex(x, mHeight-1-y)]);
+				board << TileCharacter(mBoard[index]);
+			board << EndFlagString(printFlags);
 		}
-		board[(mWidth+1)*(y+1)] = '\n';
-
+		board << '\n';
 	}
 
-	return board;
+	return board.str();
 }
 
 void Board::ApplyMove(const Move &move) {
@@ -39,12 +41,43 @@ void Board::ApplyMove(const Move &move) {
 void Board::UndoMove(const Move &move) {
 } // TODO
 
-void Board::GenerateMoves() {
-} // TODO
 
+// FIXME: would it not be quicker to incrementally update all the reachability information
+// also maybe store the boxes as a list of positions
+void Board::GenerateMoves(vector<Move> &moves)
+{
+	VisitTile(TileIndex(mPlayerPos), moves);
+#ifdef DEBUG
+	cout << BoardToString(TileFlagMask);
+	cout << "Possible moves:" << endl;
+	for (vector<Move>::iterator iter = moves.begin(); iter != moves.end(); ++iter) {
+		cout << iter->ToString() << endl;
+	}
+#endif
+	ClearFlags();
+}
 
-// TODO: function for generating all possible moves
-// (breadth/depth first search starting from player tile, with flags for visited tiles).
+void Board::VisitTile(int tileIndex, vector<Move> &moves)
+{
+	if ( (mBoard[tileIndex] & TileVisitedFlag) == 0 ) {
+		mBoard[tileIndex] |= TileVisitedFlag;
+		for (int dir = 0; dir < 4; ++dir) {
+			int next = TileIndex(tileIndex, static_cast<Dir>(dir));
+			if ((mBoard[next] & TileBox) && (TileFree(mBoard[TileIndex(next,static_cast<Dir>(dir))]))) {
+				mBoard[tileIndex] |= TileExtraFlag;
+				moves.push_back(Move(TileIndexToPos(next), static_cast<Dir>(dir)));
+			} else if (TileFree(mBoard[next])) {
+				VisitTile(next, moves);
+			}
+		}
+	}
+}
+
+void Board::ClearFlags() {
+	for (int i = 0; i < mWidth*mHeight; ++i) {
+		mBoard[i] &= ~TileFlagMask;
+	}
+}
 
 // TODO: function that takes a move (rather, a position), and generates the steps to execute this move
 // _breadth_ first search (to get the shortest possible way to get there).
@@ -108,8 +141,8 @@ void Board::ParseBoard(const char* board) {
 		}
 	}
 
-	char Board::TileCharacter(uint8_t t) {  //FIXME undo flag
-		switch(t) {
+	char Board::TileCharacter(uint8_t t) {
+		switch(t & (~TileFlagMask)) {
 		case TileEmpty:
 			return ' ';
 		case TileWall:
@@ -125,6 +158,22 @@ void Board::ParseBoard(const char* board) {
 		}
 	}
 
+const char* Board::FlagString(uint8_t tile, uint8_t flags) {
+	if (flags & tile & TileVisitedFlag)
+		if (flags & tile & TileExtraFlag)
+			return "\e[43m";
+		else
+			return "\e[42m";
+	else
+		return "";
+}
+
+const char* Board::EndFlagString(uint8_t flags) {
+	if (flags)
+		return "\e[0m";
+	else
+		return "";
+}
 
 
 

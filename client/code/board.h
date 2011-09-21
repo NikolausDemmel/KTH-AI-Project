@@ -14,6 +14,7 @@
 #include <cmath>
 #include <iostream>
 #include <cstring>
+#include <vector>
 
 
 
@@ -36,31 +37,68 @@ public:
 		ParseBoard(board);
 	}
 
+	Board(string board) {
+		ParseBoard(board.c_str());
+	}
+
 	~Board() {
 	}
 
-	void PrintBoard() {
-		cout << BoardToString() << endl;
+	void PrintBoard(uint8_t printFlags = 0) const {
+		cout << BoardToString(printFlags) << endl;
 	}
 
-	char* BoardToString();
+	string BoardToString(uint8_t printFlags) const;
+
+	// TODO: to string operator?
 
 	void ApplyMove(const Move &move); // TODO
 
 	void UndoMove(const Move &move); // TODO
 
-	void GenerateMoves(); // TODO
-
-
+	void GenerateMoves(vector<Move> &moves);
 
 private:
+	void VisitTile(int tileIndex, vector<Move> &moves);
+	void ClearFlags();
+
 	void ParseBoard(const char* board);
 
-	inline int TileIndex(int x, int y) {
+	inline bool IsIndex(int index) const {
+		return index >= 0 && index < mWidth*mHeight;
+	}
+
+	inline int TileIndex(int x, int y) const {
+		assert(IsIndex(mWidth * y + x));
 		return mWidth * y + x;
 	}
 
-	uint8_t GetTile(int x, int y) {
+	inline int TileIndex(const Pos &pos) const {
+		return TileIndex(pos.x, pos.y);
+	}
+
+	inline int TileIndex(int index, Dir offset) const {
+		switch(offset) {
+		case Up:
+			assert(IsIndex(index + mWidth));
+			return index + mWidth;
+		case Left:
+			assert(IsIndex(index - 1));
+			return index - 1;
+		case Down:
+			assert(IsIndex(index - mWidth));
+			return index - mWidth;
+		case Right:
+			assert(IsIndex(index + 1));
+			return index + 1;
+		}
+	}
+
+	inline Pos TileIndexToPos(int index) {
+		return Pos(index%mWidth, index/mWidth);
+	}
+
+	uint8_t GetTile(int x, int y) const {
 		return mBoard[TileIndex(x,y)];
 	}
 
@@ -72,11 +110,13 @@ private:
 
 	static char TileCharacter(uint8_t t);
 
+	static const char* FlagString(uint8_t tile, uint8_t flags);
+	static const char* EndFlagString(uint8_t flags);
+
+
 
 private:
-
-
-
+	// TODO: potential minor optimization: stor mSize to avoid calculation mWidth*mHeight.
 	int mWidth;
 	int mHeight;
 	Pos mPlayerPos;

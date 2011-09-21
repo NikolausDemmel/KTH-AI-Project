@@ -19,6 +19,12 @@ public:
 		mBoxPos(pos), mDirection(dir) {
 	}
 
+	string ToString() const {
+		stringstream ss;
+		ss << "Move box " << mBoxPos.ToString() << " " << DirToString(mDirection);
+		return ss.str();
+	}
+
 private:
 	Pos mBoxPos;
 	Dir mDirection;

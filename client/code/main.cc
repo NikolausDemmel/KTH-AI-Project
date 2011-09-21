@@ -3,6 +3,8 @@
 #include "csocket.h"
 #include "board.h"
 
+using namespace std;
+using namespace mnp;
 
 int main(int pArgC, char* pArgs[])
 {
@@ -17,6 +19,7 @@ int main(int pArgC, char* pArgs[])
     lSocket.WriteLine(pArgs[3]);
     
     std::string lLine;
+    string strBoard;
 
     //read number of rows
     lSocket.ReadLine(lLine);
@@ -26,11 +29,17 @@ int main(int pArgC, char* pArgs[])
     for(int i=0;i<lNumRows;i++)
     {
         lSocket.ReadLine(lLine);
-        //here, we would store the row somewhere, to build our board
-        //in this demo, we just print it
-        std::cout << lLine << "\n";
+        strBoard += lLine;
+        strBoard += '\n';
     }
     
+    vector<Move> moves;
+
+    Board board(strBoard);
+    board.PrintBoard();
+    cout << "Generating Moves." << endl;
+    board.GenerateMoves(moves);
+
     //now, we should find a solution to the sokoban
 
     //we've found our solution (this is actually the solution to board 1)    
@@ -49,4 +58,5 @@ int main(int pArgC, char* pArgs[])
 
     return 0;
 }
+
 
