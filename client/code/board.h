@@ -23,11 +23,6 @@ using namespace std;
 
 namespace mnp {
 
-// TODO: Once the board is done, we need some kind of Player or Solver class, that does the
-// search with iterative deepening or breadth first or something until it finds a solution
-// and the returns the solution string to the client who sends it to the server.
-
-
 // TODO: put implementation in .cc file.
 
 class Board
@@ -50,16 +45,28 @@ public:
 
 	string BoardToString(uint8_t printFlags) const;
 
-	// TODO: to string operator?
+	// change the board according to the move
+	void ApplyMove(const Move &move);
+	// undo the move, change the board again
+	void UndoMove(const Move &move);
 
-	void ApplyMove(const Move &move); // TODO
 
-	void UndoMove(const Move &move); // TODO
-
+	// calls VisitTile
+	// debugging
 	void GenerateMoves(vector<Move> &moves);
 
+	Pos getPlayerPos(){
+		return mPlayerPos;
+	}
+
+
+
 private:
+	// visit the neighboring tiles and set the visitflag
+	// if there is a neighboring box, add the tilepos + direction of the box to the vector of moves
 	void VisitTile(int tileIndex, vector<Move> &moves);
+
+	// reset the visit- and extra-flags
 	void ClearFlags();
 
 	void ParseBoard(const char* board);
@@ -106,11 +113,19 @@ private:
 		mBoard[TileIndex(x, y)] = value;
 	}
 
+	// returns the type of the tile
 	static uint8_t ParseTile(char c);
 
+
+	// returns the character of the tile, used e.g. for printing the board
 	static char TileCharacter(uint8_t t);
 
+	// FlagString returns the string-code for the color of the tile
+	// set colour if tile is visited, ...
 	static const char* FlagString(uint8_t tile, uint8_t flags);
+
+	// end of the color-code
+	//
 	static const char* EndFlagString(uint8_t flags);
 
 

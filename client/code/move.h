@@ -25,6 +25,13 @@ public:
 		return ss.str();
 	}
 
+	Pos getBoxPos() const{
+		return mBoxPos;
+	}
+	Dir getMoveDir() const {
+		return mDirection;
+	}
+
 private:
 	Pos mBoxPos;
 	Dir mDirection;

@@ -11,8 +11,6 @@
 namespace mnp {
 
 
-
-// TODO: rename to ToString(..) ?
 string Board::BoardToString(uint8_t printFlags = 0) const
 {
 	stringstream board;
@@ -36,10 +34,24 @@ string Board::BoardToString(uint8_t printFlags = 0) const
 }
 
 void Board::ApplyMove(const Move &move) {
-} // TODO
+	// set the current tile of the box to the tilegoal or tileempty - so undo the BoxFlag
+	// the new tile is in the direction that's stored in the move
+	// set the new tile to a tile with a box
+	// what about
+
+	mBoard[TileIndex(move.getBoxPos())] &= (~TileBox);
+	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] |= TileBox;
+
+
+}
 
 void Board::UndoMove(const Move &move) {
-} // TODO
+	// set the tile of the move-pos to tilebox
+	// the tile in the stored direction should be set to tileempty or tilegoal
+	mBoard[TileIndex(move.getBoxPos())] |= TileBox;
+	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] &= (~TileBox);
+
+}
 
 
 // FIXME: would it not be quicker to incrementally update all the reachability information
@@ -127,7 +139,7 @@ void Board::ParseBoard(const char* board) {
 		case '#':
 			return TileWall;
 		case '$':
-			return TileBox;
+			return TileBox | TileEmpty;
 		case '.':
 			return TileGoal;
 		case '+':
