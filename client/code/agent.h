@@ -26,7 +26,7 @@ public:
 	// first of all, we need to find the solution
 	void search(Board board);
 
-	int dfs(Board board, int depth);
+	bool dfs(Board board, int depth, vector<Move> &solutionMoves);
 
 	// when we know how to do it, we should somehow create the paths between the moves
 	string findPath();
