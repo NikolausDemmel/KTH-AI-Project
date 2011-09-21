@@ -28,7 +28,7 @@ int Agent::dfs(Board board, int depth){
 
 	for(int j = 0; j < board.getBoxes().size(); j++)
 	{
-	if(board[board.getBoxes().at(j)] == TileGoal){
+	if(board.getBoard()[board.getBoxes().at(j)]== TileGoal){ // FIXME: doesn't look very good - does this work?
 		boxingoal++;
 	}
 	}

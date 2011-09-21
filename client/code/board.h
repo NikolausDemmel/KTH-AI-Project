@@ -60,7 +60,13 @@ public:
 		return mPlayerPos;
 	}
 
+	vector<int> getBoxes(){
+		return mBoxes;
+	}
 
+	uint8_t* getBoard(){
+		return mBoard;
+	}
 
 private:
 	// visit the neighboring tiles and set the visitflag
@@ -129,9 +135,6 @@ private:
 	// end of the color-code
 	static const char* EndFlagString(uint8_t flags);
 
-	vector<int> getBoxes(){
-		return mBoxes;
-	}
 
 
 private:
