@@ -247,6 +247,8 @@ bool CSocket::ReadLine(std::string &pLine,bool pBlock)
         if(pBlock) continue;
         return false;
     }
+
+    return false; // this should never be reached, but avoids stupid g++ warning
 }
 
 void CSocket::Buffer()
