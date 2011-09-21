@@ -23,8 +23,6 @@ using namespace std;
 
 namespace mnp {
 
-// TODO: put implementation in .cc file.
-
 class Board
 {
 public:
@@ -39,14 +37,17 @@ public:
 	~Board() {
 	}
 
+	// used for testing
 	void PrintBoard(uint8_t printFlags = 0) const {
 		cout << BoardToString(printFlags) << endl;
 	}
 
+	// convert to board to a string
 	string BoardToString(uint8_t printFlags) const;
 
 	// change the board according to the move
 	void ApplyMove(const Move &move);
+
 	// undo the move, change the board again
 	void UndoMove(const Move &move);
 
@@ -68,6 +69,7 @@ private:
 
 	// reset the visit- and extra-flags
 	void ClearFlags();
+
 
 	void ParseBoard(const char* board);
 
@@ -125,7 +127,6 @@ private:
 	static const char* FlagString(uint8_t tile, uint8_t flags);
 
 	// end of the color-code
-	//
 	static const char* EndFlagString(uint8_t flags);
 
 

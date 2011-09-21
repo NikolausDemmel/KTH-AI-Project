@@ -33,18 +33,18 @@ string Board::BoardToString(uint8_t printFlags = 0) const
 	return board.str();
 }
 
+	// applies a move, so it only moves a box
 void Board::ApplyMove(const Move &move) {
 	// set the current tile of the box to the tilegoal or tileempty - so undo the BoxFlag
 	// the new tile is in the direction that's stored in the move
 	// set the new tile to a tile with a box
-	// what about
 
 	mBoard[TileIndex(move.getBoxPos())] &= (~TileBox);
 	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] |= TileBox;
 
 
 }
-
+	// move the box back
 void Board::UndoMove(const Move &move) {
 	// set the tile of the move-pos to tilebox
 	// the tile in the stored direction should be set to tileempty or tilegoal
@@ -159,7 +159,7 @@ void Board::ParseBoard(const char* board) {
 			return ' ';
 		case TileWall:
 			return '#';
-		case TileBox:
+		case TileBox | TileEmpty:
 			return '$';
 		case TileGoal:
 			return '.';

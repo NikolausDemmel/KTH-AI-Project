@@ -19,9 +19,13 @@ public:
 	// and the returns the solution string to the client who sends it to the server.
 
 	Agent();
+
 	~Agent();
+
 	// first of all, we need to find the solution
-	void search();
+	void search(Board board);
+
+	int dfs(Board board, int depth);
 
 	// when we know how to do it, we should somehow create the paths between the moves
 	string findPath();
