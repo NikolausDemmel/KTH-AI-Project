@@ -41,6 +41,11 @@ void Board::ApplyMove(const Move &move) {
 
 	mBoard[TileIndex(move.getBoxPos())] &= (~TileBox);
 	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] |= TileBox;
+	for(int j = 0; j < mBoxes.size(); j++){
+		if(mBoxes.at(j) == TileIndex(move.getBoxPos())){
+			mBoxes.at(j) = TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir());
+		}
+	}
 
 
 }
@@ -50,7 +55,11 @@ void Board::UndoMove(const Move &move) {
 	// the tile in the stored direction should be set to tileempty or tilegoal
 	mBoard[TileIndex(move.getBoxPos())] |= TileBox;
 	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] &= (~TileBox);
-
+	for(int j = 0; j < mBoxes.size(); j++){
+		if(mBoxes.at(j) ==  TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())){
+		mBoxes.at(j) = TileIndex(move.getBoxPos());
+		}
+	}
 }
 
 
@@ -124,6 +133,9 @@ void Board::ParseBoard(const char* board) {
 			--y;
 		} else {
 			mBoard[TileIndex(x, y)] = ParseTile(board[i]);
+			if(board[i] == '$' || board[i] == '*'){
+				mBoxes.push_back(TileIndex(x, y));
+			}
 			if (board[i] == '@' || board[i] == '+') {
 				mPlayerPos = Pos(x, y);
 			}

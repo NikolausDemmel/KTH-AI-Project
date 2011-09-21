@@ -9,6 +9,7 @@
 #define AGENT_H_
 
 #include "common.h"
+#include "board.h"
 
 namespace mnp {
 

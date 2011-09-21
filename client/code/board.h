@@ -129,6 +129,9 @@ private:
 	// end of the color-code
 	static const char* EndFlagString(uint8_t flags);
 
+	vector<int> getBoxes(){
+		return mBoxes;
+	}
 
 
 private:
@@ -137,6 +140,7 @@ private:
 	int mHeight;
 	Pos mPlayerPos;
 	uint8_t *mBoard;
+	vector<int> mBoxes; // save the index of the boxes on the boards
 };
 
 };
