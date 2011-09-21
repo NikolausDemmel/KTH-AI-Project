@@ -10,7 +10,7 @@
 
 namespace mnp {
 
-
+//creates a String that can be printed
 string Board::BoardToString(uint8_t printFlags = 0) const
 {
 	stringstream board;
