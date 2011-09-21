@@ -50,29 +50,29 @@ void Board::GenerateMoves() {
 // _breadth_ first search (to get the shortest possible way to get there).
 
 void Board::ParseBoard(const char* board) {
-	int width = 0;
-	int height = 0;
+	mWidth = 0;
+	mHeight = 0;
 
 	int currWidth = 0;
 	for (int i = 0; i < strlen(board); ++i) {
 		if (board[i] == '\n') {
-			++height;
-			width = max(width, currWidth);
+			++mHeight;
+			mWidth = max(mWidth, currWidth);
 			currWidth = 0;
 		} else {
 			++currWidth;
 		}
 	}
 
-	mBoard = new uint8_t[width*height];
+	mBoard = new uint8_t[mWidth*mHeight];
 
-	int y = height - 1;
+	int y = mHeight - 1;
 	int x = 0;
 	for (int i = 0; i < strlen(board); ++i) {
 		if (board[i] == '\n') {
 			// FIXME: maybe find all unreachable regions and make them "invalid" straight away.
 			// for now we just fill trailing tiles with walls.
-			for (; x < width; ++x) {
+			for (; x < mWidth; ++x) {
 				mBoard[TileIndex(x, y)] = TileWall;
 			}
 			x = 0;
