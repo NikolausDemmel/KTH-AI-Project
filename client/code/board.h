@@ -35,18 +35,7 @@ public:
 		ParseBoard(board.c_str());
 	}
 
-	Board(const char* fileName, unsigned int boardNumber) {
-		string str;
-		ifstream fileStream(fileName);
-		ostringstream stringStream;
-		fileStream>>str;
-		while(str.c_str()[0]!=';') {
-			stringStream<<str<<endl;
-			fileStream>>str;
-		}
-		stringStream<<"\0";
-		Board(stringStream.str());
-	}
+	Board(const char* fileName, unsigned int boardNumber);
 
 	~Board() {
 	}
@@ -72,6 +61,14 @@ public:
 
 	//TODO
 	bool isSolved();
+
+	//
+
+	bool doAction(Dir toWhere);
+
+	void undoAction(Dir fromWhere,bool unPush);
+
+	void simulateActions(const char* actions);
 
 	/*Pos getPlayerPos(){
 		return mPlayerPos;

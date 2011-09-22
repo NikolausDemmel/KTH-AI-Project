@@ -10,6 +10,26 @@
 
 namespace mnp {
 
+//Construct from file
+ Board::Board(const char* fileName, unsigned int boardNumber) {
+		string str;
+		ifstream fileStream(fileName);
+		ostringstream stringStream;
+		while(boardNumber>0) {
+			do {
+				getline(fileStream,str);
+			} while(str.at(0)!=';');
+			boardNumber--;
+		}
+		getline(fileStream,str);
+		while(str.at(0)!=';') {
+			stringStream<<str<<"\n";
+			getline(fileStream,str);
+		}
+		ParseBoard(stringStream.str().c_str());
+//		cout<<"H: "<<mHeight<<" W: "<<mWidth<<endl;
+	}
+
 //creates a String that can be printed
 string Board::BoardToString(uint8_t printFlags = 0) const
 {
@@ -64,7 +84,74 @@ void Board::UndoMove(const Move &move) {
 		}
 	}
 }
+bool Board::doAction(Dir toWhere) {
+	Pos next(mPlayerPos,toWhere);
 
+	if( mBoard[TileIndex(next)] & TileWall) {
+		throw "banging in the wall";
+	} else if (mBoard[TileIndex(next)] & TileBox) {
+		cout<<"pushAt-"<<mPlayerPos.ToString()<<DirToString(toWhere)<<endl;
+		Move tMove(Pos(mPlayerPos,toWhere),toWhere);
+		ApplyMove(tMove);
+		return true;
+	} else {
+		mPlayerPos=next;
+		return false;
+	}
+}
+
+void Board::undoAction(Dir fromWhere,bool unPush){
+	Pos prev(mPlayerPos,fromWhere,-1);
+	if(unPush) {
+		Move tMove(mPlayerPos,fromWhere);
+		UndoMove(tMove);
+	} else {
+		if(mBoard[TileIndex(prev)] & (TileWall|TileBox)) throw "banging back";
+		else mPlayerPos = prev;
+	}
+}
+
+void Board::simulateActions(const char* actions){
+	bool pushed=false;
+		switch(*actions) {
+		case ' ':
+			return simulateActions(++actions);
+		case 'U':	case 'u':	case '0':
+			cout<<"up"<<endl;
+			pushed = doAction(Up);
+			PrintBoard();
+			simulateActions(++actions);
+			undoAction(Up,pushed);
+			return;
+		case 'D':	case 'd':	case '1':
+			cout<<"down"<<endl;
+			pushed = doAction(Down);
+			PrintBoard();
+			simulateActions(++actions);
+			undoAction(Down,pushed);
+			return;
+		case 'L':	case 'l':	case '2':
+			cout<<"left"<<endl;
+			pushed = doAction(Left);
+			PrintBoard();
+			simulateActions(++actions);
+			undoAction(Left,pushed);
+			return;
+		case 'R':	case 'r':	case '3':
+			cout<<"right"<<endl;
+			pushed = doAction(Right);
+			PrintBoard();
+			simulateActions(++actions);
+			undoAction(Right,pushed);
+			return;
+		case '\0':
+			return;
+		default:
+			cout<<"invalid character in simulate actions: \'\\"<<(int)*actions<<"\'\n";
+			return;
+		}
+
+	}
 
 // FIXME: would it not be quicker to incrementally update all the reachability information
 // also maybe store the boxes as a list of positions

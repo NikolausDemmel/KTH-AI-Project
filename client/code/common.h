@@ -13,7 +13,7 @@
 #include <sstream>
 #include <cassert>
 
-#define DEBUG
+//#define DEBUG
 
 
 using namespace std;
