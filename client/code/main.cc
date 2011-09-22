@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include "csocket.h"
 #include "board.h"
+#include "agent.h"
 
 using namespace std;
 using namespace mnp;
@@ -35,10 +36,31 @@ int main(int pArgC, char* pArgs[])
     
     vector<Move> moves;
 
-    Board board(strBoard);
-    board.PrintBoard();
+    //Board myBoard("board.txt",0);//(strBoard);
+    Board myBoard("#####\n# . #\n#   #\n#  #\n# $.#\n#@  #\n#####\n");
+    //Board myBoard(strBoard);
+
+    myBoard.PrintBoard();
+
+    Agent myAgent;
+    myAgent.setBoard(&myBoard);
+    myAgent.findSolution();
+
+    cout<<myAgent.solutionMoves.size()<<" moves"<<endl;
+    myBoard.PrintBoard();
+
+    while(myAgent.solutionMoves.size()>0) {
+    	myBoard.ApplyMove(myAgent.solutionMoves.top());
+    	cout<<"moves left: "<<myAgent.solutionMoves.size()<<endl;
+    	myBoard.PrintBoard();
+    	myAgent.solutionMoves.pop();
+    }
+
+
+
     cout << "Generating Moves." << endl;
-    board.GenerateMoves(moves);
+    myBoard.GenerateMoves(moves);
+    cout<<moves.size()<<endl;
 
     //now, we should find a solution to the sokoban
 

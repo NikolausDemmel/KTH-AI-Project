@@ -46,6 +46,19 @@ enum Dir {
 	Right = 3
 };
 
+/*Dir inv(Dir direction) {
+	switch(direction) {
+	case Up:
+		return Down;
+	case Down:
+		return Up;
+	case Left:
+		return Right;
+	case Right:
+		return Left;
+	}
+}*/
+
 typedef unsigned int coord_t;
 
 class Pos
@@ -60,6 +73,25 @@ public:
 	Pos() {
 		x = 0;
 		y = 0;
+	}
+
+	Pos(Pos currentPos, Dir offset, int m=1) {
+		x = currentPos.x;
+		y = currentPos.y;
+		switch (offset) {
+		case Up:
+			y+=1*m;
+			break;
+		case Down:
+			y-=1*m;
+			break;
+		case Left:
+			x-=1*m;
+			break;
+		case Right:
+			x+=1*m;
+			break;
+		}
 	}
 
 	string ToString() const {
@@ -77,7 +109,7 @@ const char* DirToString(Dir dir);
 inline bool TileFree(uint8_t tile)
 {
 	tile &= ~TileFlagMask;
-	return tile == TileEmpty || ((tile & TileGoal) && !(tile & TileBox));
+	return (tile == TileEmpty) || ((tile & TileGoal) && !(tile & TileBox));
 }
 
 };

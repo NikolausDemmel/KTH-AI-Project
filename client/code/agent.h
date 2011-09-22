@@ -10,8 +10,16 @@
 
 #include "common.h"
 #include "board.h"
+//#include <list>
+#include <stack>
 
 namespace mnp {
+
+enum SearchResult {
+	Solution,
+	Failure,
+	CutOff
+};
 
 class Agent{
 public:
@@ -19,27 +27,41 @@ public:
 	// search with iterative deepening or breadth first or something until it finds a solution
 	// and the returns the solution string to the client who sends it to the server.
 
-	Agent();
+	//Agent();
 
-	~Agent();
+	//~Agent();
 
-	// first of all, we need to find the solution
-	void search(Board board);
+	/*	void search(Board board);
+	 *
+	 *	bool dfs(Board board, int depth, vector<Move> &solutionMoves);
+	 *
+	 *	// when we know how to do it, we should somehow create the paths between the moves
+	 *	string findPath();
+	 *
+	 *	// when we know everything, we have to write the solution into a string and send it
+	 *	string submitSolution();
+	 */
 
-	bool dfs(Board board, int depth, vector<Move> &solutionMoves);
+	void setBoard(Board *aBoard);
+	//{myBoard = aBoard;}
 
-	// when we know how to do it, we should somehow create the paths between the moves
-	string findPath(Board board);
+	void findSolution();
 
-	// when we know everything, we have to write the solution into a string and send it
-	string submitSolution();
+	SearchResult depthLimitedSearch(int depth);
 
 	//breadth first search for finding the shortest path to a certain pos
 	vector<int> pathSearch(Board board, Pos start, Pos end);
 
 private:
 
-	string mSolution;
+	Board *myBoard;
+public:
+	stack<Move> solutionMoves;
+
+/*	list<Move> SolutionMoves;
+	list<Move>::iterator it;
+ */ // Use this for list
+
 
 }; // class
 

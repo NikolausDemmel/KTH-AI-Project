@@ -12,9 +12,10 @@
 #include "move.h"
 #include <string>
 #include <cmath>
-#include <iostream>
 #include <cstring>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 
 
@@ -32,6 +33,19 @@ public:
 
 	Board(string board) {
 		ParseBoard(board.c_str());
+	}
+
+	Board(const char* fileName, unsigned int boardNumber) {
+		string str;
+		ifstream fileStream(fileName);
+		ostringstream stringStream;
+		fileStream>>str;
+		while(str.c_str()[0]!=';') {
+			stringStream<<str<<endl;
+			fileStream>>str;
+		}
+		stringStream<<"\0";
+		Board(stringStream.str());
 	}
 
 	~Board() {
@@ -56,7 +70,10 @@ public:
 	// debugging
 	void GenerateMoves(vector<Move> &moves);
 
-	Pos getPlayerPos(){
+	//TODO
+	bool isSolved();
+
+	/*Pos getPlayerPos(){
 		return mPlayerPos;
 	}
 
@@ -66,7 +83,7 @@ public:
 
 	uint8_t* getBoard(){
 		return mBoard;
-	}
+	}*/
 
 private:
 	// visit the neighboring tiles and set the visitflag

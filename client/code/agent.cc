@@ -9,6 +9,9 @@
 
 namespace mnp {
 
+/*
+	void Agent::search(Board board){
+		int val = dfs(board, 2);
 
 void Agent::search(Board board){
 	vector<Move> solutionMoves;
@@ -35,7 +38,7 @@ string Agent::findPath(Board board){
 	 // next step: find path to next position and so on... don't forget to save :)
 	 // do this for all moves that provide the solution
 
-}
+	}
 
 
 
@@ -56,10 +59,10 @@ vector<int> Agent::pathSearch(Board board, Pos start, Pos end){ // TODO
 
 bool Agent::dfs(Board board, int depth, vector<Move> &solutionMoves){
 
-	bool foundsolution = false;
+		bool foundsolution = false;
 
-	// do we have the solution? yes -> return sequence of moves
-	int boxingoal=0;
+		// do we have the solution? yes -> return sequence of moves
+		int boxingoal=0;
 
 	for(int j = 0; j < board.getBoxes().size(); j++)
 	{
@@ -81,10 +84,17 @@ bool Agent::dfs(Board board, int depth, vector<Move> &solutionMoves){
 		foundsolution = dfs(board, depth-1, solutionMoves);
 		if(foundsolution)
 		{
-			solutionMoves.push_back(possibleMoves.at(i));
+			board.ApplyMove(possibleMoves.at(i));
+			foundsolution = dfs(board, depth-1);
+			if(foundsolution)
+			{
+				solutionMoves.push_back(possibleMoves.at(i));
+			}
+			board.UndoMove(possibleMoves.at(i));
 		}
-		board.UndoMove(possibleMoves.at(i));
+
 	}
+
 	return foundsolution;
 }
 
@@ -92,6 +102,54 @@ string Agent::submitSolution(){
 			return mSolution; // TODO
 }
 
+ */
+
+// yg
+void Agent::findSolution() {
+
+	SearchResult result;
+	int depth = 1;
+	while(!solutionMoves.empty())
+	solutionMoves.pop();
+//	solutionMoves.clear();
+	do {
+		result = depthLimitedSearch(depth++);
+	} while(result==CutOff);
+
+}
+
+SearchResult Agent::depthLimitedSearch(int depth){
+
+	// Base Cases
+	if ((*myBoard).isSolved()) return Solution;
+	if (depth == 0) return CutOff;
+
+	bool cutOff_Occured = false;
+	vector<Move> possibleMoves;
+	SearchResult result;
+	myBoard->GenerateMoves(possibleMoves);
+	for(int i = 0; i < possibleMoves.size(); i++) {
+		myBoard->ApplyMove(possibleMoves.at(i));
+//		myBoard->PrintBoard();
+		result = depthLimitedSearch(depth-1);
+		myBoard->UndoMove(possibleMoves.at(i));
+
+		if(result==CutOff) cutOff_Occured = true;
+		else if (result!=Failure) {
+			solutionMoves.push(possibleMoves.at(i)); //NOTE using a stack not a list
+			//solutionMoves.insert(it,possibleMoves.at(i));
+			return Solution;
+		}	//else : solution not found, try next node :/
+	}
+	if(cutOff_Occured) return CutOff;
+	else return Failure;
+
+}
+
+void Agent::setBoard(Board *aBoard) {
+	myBoard = aBoard;
+}
+// yg
 
 }; // namespace
 
