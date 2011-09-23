@@ -15,6 +15,7 @@
 
 #define DEBUG
 #define INFO
+#define VERBOSE_SHORTEST_PATH
 // #define VERBOSE_GENERATE_MOVES
 
 
@@ -104,6 +105,24 @@ enum SearchResult {
 	Failure,
 	CutOff
 };
+
+
+// TODO: find proper place for this
+struct TileNode {
+
+	TileNode():
+		distance(numeric_limits<int>::max()),
+		visited(false),
+		parent(Up)
+	{
+	}
+
+	int distance;
+	bool visited;
+	Dir parent;
+
+};
+
 
 const char* DirToString(Dir dir);
 const char* SearchResultToString(SearchResult result);

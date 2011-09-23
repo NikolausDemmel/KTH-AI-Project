@@ -46,7 +46,7 @@ public:
 	}
 
 	// convert to board to a string
-	string BoardToString(uint8_t printFlags = 0) const;
+	string BoardToString(uint8_t printFlags = 0, vector<TileNode> *nodes = 0) const;
 
 	// change the board according to the move
 	void ApplyMove(const Move &move);
@@ -171,7 +171,7 @@ private:
 
 
 	// returns the character of the tile, used e.g. for printing the board
-	static char TileCharacter(uint8_t t);
+	static char TileCharacter(uint8_t t, TileNode *node);
 
 	// FlagString returns the string-code for the color of the tile
 	// set colour if tile is visited, ...

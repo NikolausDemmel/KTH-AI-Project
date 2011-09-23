@@ -172,21 +172,6 @@ void Agent::setBoard(Board *aBoard) {
 	myBoard = aBoard;
 }
 
-struct TileNode {
-
-	TileNode():
-		distance(numeric_limits<int>::max()),
-		visited(false),
-		parent(Up)
-	{
-	}
-
-	int distance;
-	bool visited;
-	Dir parent;
-
-};
-
 struct TileIndexComparator {
 
 	TileIndexComparator(const vector<TileNode> *nodes):
@@ -195,7 +180,7 @@ struct TileIndexComparator {
 	}
 
 	bool operator()(const int &a, const int &b) {
-		return mNodes->at(a).distance < mNodes->at(b).distance;
+		return mNodes->at(a).distance > mNodes->at(b).distance;
 	}
 
 private:
@@ -232,6 +217,12 @@ bool Agent::shortestPathSearch(string &actions, const Board &board, Pos start, P
 			}
 			actions = ss.str();
 			reverse(actions.begin(), actions.end());
+
+#ifdef VERBOSE_SHORTEST_PATH
+			cout << "Shortest path search result: " << endl;
+			cout << board.BoardToString(0, &nodes) << endl;
+#endif
+
 			return true;
 		}
 		for (int i = 0; i < 4; ++i) {
@@ -245,6 +236,7 @@ bool Agent::shortestPathSearch(string &actions, const Board &board, Pos start, P
 			}
 		}
 	}
+
 
 	return false;
 }

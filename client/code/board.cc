@@ -31,7 +31,7 @@ namespace mnp {
 	}
 
 //creates a String that can be printed
-string Board::BoardToString(uint8_t printFlags) const
+string Board::BoardToString(uint8_t printFlags, vector<TileNode> *nodes) const
 {
 	stringstream board;
 	for(int y = mHeight-1; y >= 0; --y) {
@@ -44,7 +44,7 @@ string Board::BoardToString(uint8_t printFlags) const
 				else
 					board << '@';
 			else
-				board << TileCharacter(mBoard[index]);
+				board << TileCharacter(mBoard[index], (nodes ? &(nodes->at(index)) : 0));
 			board << EndFlagString(printFlags);
 		}
 		board << '\n';
@@ -304,10 +304,14 @@ int Board::calculateIndexBits(int size) {
 		}
 	}
 
-	char Board::TileCharacter(uint8_t t) {
+	char Board::TileCharacter(uint8_t t, TileNode *node) {
 		switch(t & (~TileFlagMask)) {
 		case TileEmpty:
-			return ' ';
+			if (node) {
+				return '0' + node->distance;
+			} else {
+				return ' ';
+			}
 		case TileWall:
 			return '#';
 		case (TileBox | TileEmpty):
