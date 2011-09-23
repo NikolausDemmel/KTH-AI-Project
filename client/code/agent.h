@@ -13,6 +13,8 @@
 //#include <list>
 #include <stack>
 
+using namespace std;
+
 namespace mnp {
 
 enum SearchResult {
@@ -49,8 +51,11 @@ public:
 
 	SearchResult depthLimitedSearch(int depth);
 
-	//breadth first search for finding the shortest path to a certain pos
-	vector<int> pathSearch(Board board, Pos start, Pos end);
+	string executeSolution();
+
+	// TODO: find another class where we can put this (maybe Board)
+	static bool shortestPathSearch(string &actions, const Board &board, Pos start, Pos end);
+	static bool actionsForMove(string &actions, const Board &board, Move &move);
 
 private:
 

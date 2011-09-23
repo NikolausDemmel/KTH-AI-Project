@@ -25,4 +25,30 @@ const char* DirToString(Dir dir)
 	}
 }
 
+Dir invertDirection(Dir dir) {
+	switch(dir) {
+	case Up:
+		return Down;
+	case Down:
+		return Up;
+	case Left:
+		return Right;
+	case Right:
+		return Left;
+	}
+}
+
+char directionToAction(Dir dir) {
+	switch(dir) {
+	case Up:
+		return 'U';
+	case Down:
+		return 'D';
+	case Left:
+		return 'L';
+	case Right:
+		return 'R';
+	}
+}
+
 };

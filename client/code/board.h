@@ -46,7 +46,7 @@ public:
 	}
 
 	// convert to board to a string
-	string BoardToString(uint8_t printFlags) const;
+	string BoardToString(uint8_t printFlags = 0) const;
 
 	// change the board according to the move
 	void ApplyMove(const Move &move);
@@ -81,6 +81,10 @@ public:
 	uint8_t* getBoard(){
 		return mBoard;
 	}*/
+
+	void restoreInitialPlayerPos() {
+		mPlayerPos = mInitialPlayerPos;
+	}
 
 private:
 	// visit the neighboring tiles and set the visitflag
@@ -124,13 +128,25 @@ public:
 		}
 	}
 
+	int size() const {
+		return mWidth*mHeight;
+	}
+
+	Pos getPlayerPos() const {
+		return mPlayerPos;
+	}
+
+	uint8_t getTile(int x, int y) const {
+		return mBoard[TileIndex(x,y)];
+	}
+
+	uint8_t getTile(int index) const {
+		return mBoard[index];
+	}
+
 private:
 	inline Pos TileIndexToPos(int index) {
 		return Pos(index%mWidth, index/mWidth);
-	}
-
-	uint8_t GetTile(int x, int y) const {
-		return mBoard[TileIndex(x,y)];
 	}
 
 	void SetTile(int x, int y, uint8_t value) {
@@ -158,6 +174,7 @@ private:
 	int mWidth;
 	int mHeight;
 	Pos mPlayerPos;
+	Pos mInitialPlayerPos;
 	uint8_t *mBoard;
 	vector<int> mBoxes; // save the index of the boxes on the boards
 };

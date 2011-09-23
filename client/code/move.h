@@ -32,6 +32,10 @@ public:
 		return mDirection;
 	}
 
+	Pos getPlayerPos() const {
+		return Pos(mBoxPos, invertDirection(mDirection));
+	}
+
 private:
 	Pos mBoxPos;
 	Dir mDirection;

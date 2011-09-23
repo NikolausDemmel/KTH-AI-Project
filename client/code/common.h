@@ -13,7 +13,10 @@
 #include <sstream>
 #include <cassert>
 
-//#define DEBUG
+#define DEBUG
+#define INFO
+// #define VERBOSE_GENERATE_MOVES
+
 
 
 using namespace std;
@@ -45,19 +48,6 @@ enum Dir {
 	Down = 2,
 	Right = 3
 };
-
-/*Dir inv(Dir direction) {
-	switch(direction) {
-	case Up:
-		return Down;
-	case Down:
-		return Up;
-	case Left:
-		return Right;
-	case Right:
-		return Left;
-	}
-}*/
 
 typedef unsigned int coord_t;
 
@@ -105,8 +95,10 @@ public:
 };
 
 const char* DirToString(Dir dir);
+Dir invertDirection(Dir dir);
+char directionToAction(Dir dir);
 
-inline bool TileFree(uint8_t tile)
+inline bool isTileFree(uint8_t tile)
 {
 	tile &= ~TileFlagMask;
 	return (tile == TileEmpty) || ((tile & TileGoal) && !(tile & TileBox));

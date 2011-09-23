@@ -31,7 +31,7 @@ namespace mnp {
 	}
 
 //creates a String that can be printed
-string Board::BoardToString(uint8_t printFlags = 0) const
+string Board::BoardToString(uint8_t printFlags) const
 {
 	stringstream board;
 	for(int y = mHeight-1; y >= 0; --y) {
@@ -158,7 +158,7 @@ void Board::simulateActions(const char* actions){
 void Board::GenerateMoves(vector<Move> &moves)
 {
 	VisitTile(TileIndex(mPlayerPos), moves);
-#ifdef DEBUG
+#ifdef VERBOSE_GENERATE_MOVES
 	cout << BoardToString(TileFlagMask);
 	cout << "Possible moves:" << endl;
 	for (vector<Move>::iterator iter = moves.begin(); iter != moves.end(); ++iter) {
@@ -174,10 +174,10 @@ void Board::VisitTile(int tileIndex, vector<Move> &moves)
 		mBoard[tileIndex] |= TileVisitedFlag;
 		for (int dir = 0; dir < 4; ++dir) {
 			int next = TileIndex(tileIndex, static_cast<Dir>(dir));
-			if ((mBoard[next] & TileBox) && (TileFree(mBoard[TileIndex(next,static_cast<Dir>(dir))]))) {
+			if ((mBoard[next] & TileBox) && (isTileFree(mBoard[TileIndex(next,static_cast<Dir>(dir))]))) {
 				mBoard[tileIndex] |= TileExtraFlag;
 				moves.push_back(Move(TileIndexToPos(next), static_cast<Dir>(dir)));
-			} else if (TileFree(mBoard[next])) {
+			} else if (isTileFree(mBoard[next])) {
 				VisitTile(next, moves);
 			}
 		}
@@ -241,6 +241,8 @@ void Board::ParseBoard(const char* board) {
 			++x;
 		}
 	}
+
+	mInitialPlayerPos = mPlayerPos;
 }
 
 	uint8_t Board::ParseTile(char c) {

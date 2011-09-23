@@ -5,6 +5,10 @@
  *      Author: astridrupp
  */
 
+#include <limits>
+#include <algorithm>
+#include <queue>
+#include <sstream>
 #include "agent.h"
 
 namespace mnp {
@@ -104,7 +108,6 @@ string Agent::submitSolution(){
 
  */
 
-// yg
 void Agent::findSolution() {
 
 	SearchResult result;
@@ -113,6 +116,9 @@ void Agent::findSolution() {
 	solutionMoves.pop();
 //	solutionMoves.clear();
 	do {
+#ifdef INFO
+		cout << "Trying depth " << depth << endl;
+#endif
 		result = depthLimitedSearch(depth++);
 	} while(result==CutOff);
 
@@ -149,7 +155,113 @@ SearchResult Agent::depthLimitedSearch(int depth){
 void Agent::setBoard(Board *aBoard) {
 	myBoard = aBoard;
 }
-// yg
+
+struct TileNode {
+
+	TileNode():
+		distance(numeric_limits<int>::max()),
+		visited(false),
+		parent(Up)
+	{
+	}
+
+	int distance;
+	bool visited;
+	Dir parent;
+
+};
+
+struct TileIndexComparator {
+
+	TileIndexComparator(const vector<TileNode> *nodes):
+		mNodes(nodes)
+	{
+	}
+
+	bool operator()(const int &a, const int &b) {
+		return mNodes->at(a).distance < mNodes->at(b).distance;
+	}
+
+private:
+	const vector<TileNode> *mNodes;
+
+};
+
+bool Agent::shortestPathSearch(string &actions, const Board &board, Pos start, Pos end)
+{
+	stringstream ss;
+
+	vector<TileNode> nodes(board.size());
+
+	int startIndex = board.TileIndex(start);
+	int endIndex = board.TileIndex(end);
+
+	nodes[startIndex].distance = 0;
+	nodes[startIndex].visited = true;
+
+	TileIndexComparator comparator(&nodes);
+	priority_queue<int, vector<int>, TileIndexComparator> pq(comparator);
+	pq.push(startIndex);
+
+	while(!pq.empty()) {
+		int curr = pq.top();
+		pq.pop();
+		if(curr == endIndex) {
+			while(curr != startIndex) {
+				ss << directionToAction(invertDirection(nodes[curr].parent));
+				curr = board.TileIndex(curr, nodes[curr].parent);
+			}
+			actions = ss.str();
+			reverse(actions.begin(), actions.end());
+			return true;
+		}
+		for (int i = 0; i < 4; ++i) {
+			Dir dir = static_cast<Dir>(i);
+			int next = board.TileIndex(curr, dir);
+			if (!nodes[next].visited && isTileFree(board.getTile(next))) {
+				nodes[next].distance = nodes[curr].distance + 1;
+				nodes[next].parent = invertDirection(dir);
+				nodes[next].visited = true;
+				pq.push(next);
+			}
+		}
+	}
+
+	return false;
+}
+
+bool Agent::actionsForMove(string &actions, const Board &board, Move &move)
+{
+	if (shortestPathSearch(actions, board, board.getPlayerPos(), move.getPlayerPos())) {
+		actions += directionToAction(move.getMoveDir());
+		return true;
+	}
+	return false;
+}
+
+string Agent::executeSolution() {
+
+	// FIXME: should we really do this here
+	myBoard->restoreInitialPlayerPos();
+
+#ifdef INFO
+	cout << "Execution Solution." << endl;
+#endif
+	stringstream solution;
+	while(!solutionMoves.empty()) {
+		Move move = solutionMoves.top();
+		solutionMoves.pop();
+		string actions;
+		actionsForMove(actions, *myBoard, move);
+		solution <<  actions;
+		myBoard->ApplyMove(move);
+#ifdef INFO
+		cout << "Applying move " << move.ToString() << endl;
+		cout << myBoard->BoardToString() << endl;
+#endif
+	}
+	return solution.str();
+}
 
 }; // namespace
 
