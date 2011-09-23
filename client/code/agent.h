@@ -10,8 +10,8 @@
 
 #include "common.h"
 #include "board.h"
-//#include <list>
-#include <stack>
+#include <list>
+//#include <stack>
 
 using namespace std;
 
@@ -61,11 +61,11 @@ private:
 
 	Board *myBoard;
 public:
-	stack<Move> solutionMoves;
+	//stack<Move> solutionMoves;
 
-/*	list<Move> SolutionMoves;
-	list<Move>::iterator it;
- */ // Use this for list
+	list<Move> solutionMoves;
+	//list<Move>::iterator solutionItr;
+	// Use this for list
 
 
 }; // class
