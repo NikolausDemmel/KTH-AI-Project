@@ -12,6 +12,7 @@
 #include <string>
 #include <sstream>
 #include <cassert>
+#include <cmath>
 
 #define DEBUG
 #define INFO
@@ -91,8 +92,11 @@ public:
 	}
 
 
+
+
 	coord_t x, y;
 };
+int manhattanDistance(Pos a, Pos b);
 
 const char* DirToString(Dir dir);
 Dir invertDirection(Dir dir);

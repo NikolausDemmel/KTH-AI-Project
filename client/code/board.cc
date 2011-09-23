@@ -167,6 +167,41 @@ void Board::simulateActions(const char* actions){
 
 // FIXME: would it not be quicker to incrementally update all the reachability information
 // also maybe store the boxes as a list of positions
+
+int Board::rateMove(Move move) {
+	vector<int>::iterator boxIterator;
+	vector<int>::iterator goalIterator;
+	int min=INT_MAX;
+	for(boxIterator=mBoxes.begin();boxIterator!=mBoxes.end();boxIterator++) {
+			for(goalIterator=mGoals.begin();goalIterator!=mGoals.end();goalIterator++) {
+				int temp = manhattanDistance(TileIndexToPos(*boxIterator),TileIndexToPos(*goalIterator));
+				if (temp < min) temp = min;
+			}
+	}
+	return INT_MAX-min;
+}
+
+
+
+Move Board::GenerateBestRatedMove(vector<Move> &moves) {
+	GenerateMoves(moves);
+	int max=0;
+	vector<Move>::iterator bestMoveIt;
+	for(vector<Move>::iterator tempMovesIt=moves.begin();tempMovesIt!=moves.end();++tempMovesIt){
+		if(rateMove(*tempMovesIt)>max) max = rateMove(*tempMovesIt);
+		bestMoveIt = tempMovesIt;
+	}
+
+	vector<Move>::iterator originMoveIt;
+	originMoveIt = moves.begin();
+	Move temp = *originMoveIt;
+	*originMoveIt = *bestMoveIt;
+	*bestMoveIt = temp;
+	temp = *originMoveIt;
+	return temp;
+
+}
+
 void Board::GenerateMoves(vector<Move> &moves)
 {
 	VisitTile(TileIndex(mPlayerPos), moves);
@@ -244,12 +279,16 @@ void Board::ParseBoard(const char* board) {
 			--y;
 		} else {
 			mBoard[TileIndex(x, y)] = ParseTile(board[i]);
-			if(board[i] == '$' || board[i] == '*'){
-				mBoxes.push_back(TileIndex(x, y));
-			}
 			if (board[i] == '@' || board[i] == '+') {
 				mPlayerPos = Pos(x, y);
 			}
+			if(board[i] == '$' || board[i] == '*'){
+				mBoxes.push_back(TileIndex(x, y));
+			}
+			if(board[i] == '.' || board[i] == '+'){
+				mGoals.push_back(TileIndex(x, y));
+			}
+
 			++x;
 		}
 	}

@@ -16,6 +16,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 
 
@@ -58,11 +59,11 @@ public:
 	// calls VisitTile
 	// debugging
 	void GenerateMoves(vector<Move> &moves);
+	Move GenerateBestRatedMove(vector<Move> &moves);
+	int rateMove(Move move);
 
 	//TODO
 	bool isSolved();
-
-	//
 
 	bool doAction(Dir toWhere);
 
@@ -177,6 +178,7 @@ private:
 	Pos mInitialPlayerPos;
 	uint8_t *mBoard;
 	vector<int> mBoxes; // save the index of the boxes on the boards
+	vector<int> mGoals; // save the indix of boards too!! haha! for rateMove!
 };
 
 };

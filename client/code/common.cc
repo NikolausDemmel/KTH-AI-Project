@@ -51,4 +51,8 @@ char directionToAction(Dir dir) {
 	}
 }
 
+int manhattanDistance(Pos a, Pos b) {
+	return (abs( (int) ((int)a.x-a.y))+(b.x-b.y) );
+}
+
 };
