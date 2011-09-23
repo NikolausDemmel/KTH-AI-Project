@@ -12,7 +12,7 @@ client: *.cc *.h
 
 run: client
 	./client $(SERVER) $(PORT) $(BOARD)
-	
+
 build-opt: client-opt
 
 client-opt: *.cc *.h
@@ -20,6 +20,6 @@ client-opt: *.cc *.h
 
 run-opt: client-opt
 	./client-opt $(SERVER) $(PORT) $(BOARD)
-	
+
 clean:
 	rm client client-opt
