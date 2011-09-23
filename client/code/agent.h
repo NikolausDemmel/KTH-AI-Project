@@ -12,7 +12,7 @@
 #include "board.h"
 #include "hash_table.h"
 #include <list>
-#include <stack>
+//#include <stack>
 
 using namespace std;
 
@@ -61,11 +61,11 @@ private:
 
 	HashTable mHashTable;
 public:
-	stack<Move> solutionMoves;
+	//stack<Move> solutionMoves;
 
-/*	list<Move> SolutionMoves;
-	list<Move>::iterator it;
- */ // Use this for list
+	list<Move> solutionMoves;
+	//list<Move>::iterator solutionItr;
+	// Use this for list
 
 
 }; // class

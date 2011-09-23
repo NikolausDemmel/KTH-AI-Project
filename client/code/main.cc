@@ -59,11 +59,15 @@ int main(int pArgC, char* pArgs[])
 //    	myAgent.solutionMoves.pop();
 //    }
 
+    myBoard.PrintBoard();
+    cout<<"execute solution"<<endl;
     string solution = myAgent.executeSolution();
+    cout<<"string solution found!!"<<endl;
+    myBoard.PrintBoard();
+
+    myBoard.simulateActions(solution.c_str());
 
     cout << "Actions: " << solution << endl;
-
-    //now, we should find a solution to the sokoban
 
     string lMySol = solution;
 
@@ -75,12 +79,7 @@ int main(int pArgC, char* pArgs[])
     //std::string lMySol("0 3 3 0 0 2 1 2 2 0 2 2 1 3 3 3 3 2 1 1 3 0 3 0 1 2 2 0 3");
 
     //send the solution to the server
-
-	//myBoard.simulateActions(lMySol.c_str());
-
-	//cout<<"is it the original board?"<<endl;
-	//myBoard.PrintBoard();
-    
+    //myBoard.simulateActions("URRUULDLLULLDRRRRLDDRURUDLLUR");
     lSocket.WriteLine(lMySol);
     
     //read answer from the server

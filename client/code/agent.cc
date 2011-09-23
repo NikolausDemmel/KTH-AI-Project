@@ -114,21 +114,23 @@ void Agent::findSolution()
 	SearchResult result;
 	int depth = 1;
 
-	while(!solutionMoves.empty())
-		solutionMoves.pop();
-	//	solutionMoves.clear();
+//	while(!solutionMoves.empty())
+//	solutionMoves.pop();
+	solutionMoves.clear();
 
-	do {
+		do {
 #ifdef INFO
-		cout << endl << "Trying depth " << depth << endl;
+			cout << "Trying depth " << depth << endl;
 #endif
-		result = depthLimitedSearch(depth++);
-
+			result = depthLimitedSearch(depth++);
 #ifdef INFO
-		mHashTable.printStatistics();
+            mHashTable.printStatistics();
 #endif
-		mHashTable.clear();
-	} while(result==CutOff);
+            mHashTable.clear();
+		} while(result==CutOff);
+		myBoard->restoreInitialPlayerPos();
+		if (result==Failure) throw "board can't be solved.";
+		else return;
 
 #ifdef INFO
 		cout << "Result of search was " << SearchResultToString(result) << endl;
@@ -158,8 +160,8 @@ SearchResult Agent::depthLimitedSearch(int depth)
 
 		if(result==CutOff) cutOff_Occured = true;
 		else if (result!=Failure) {
-			solutionMoves.push(*it); //NOTE using a stack not a list
-			//solutionMoves.insert(it,possibleMoves.at(i));
+			//solutionMoves.push(*it); //NOTE using a stack not a list
+			solutionMoves.push_front(*it);
 			return Solution;
 		}	//else : solution not found, try next node :/
 	}
@@ -253,15 +255,19 @@ bool Agent::actionsForMove(string &actions, const Board &board, Move &move)
 string Agent::executeSolution() {
 
 	// FIXME: should we really do this here
-	myBoard->restoreInitialPlayerPos();
+	// FIXME: ^ we can do it after each method is completed. (for instance, in the function body of find solutions)
+	//myBoard->restoreInitialPlayerPos();
 
 #ifdef INFO
 	cout << "Execution Solution." << endl;
 #endif
 	stringstream solution;
-	while(!solutionMoves.empty()) {
-		Move move = solutionMoves.top();
-		solutionMoves.pop();
+	list<Move>::iterator solutionItr = solutionMoves.begin();
+	for(;solutionItr!=solutionMoves.end();solutionItr++) {
+		Move move = *solutionItr;
+//	while(!solutionMoves.empty()) {
+//		Move move = solutionMoves.top();
+//		solutionMoves.pop();
 		string actions;
 		actionsForMove(actions, *myBoard, move);
 		solution << actions;
@@ -271,9 +277,21 @@ string Agent::executeSolution() {
 		myBoard->ApplyMove(move);
 #ifdef INFO
 		cout << "Applying move " << move.ToString() << endl;
-		cout << myBoard->BoardToString() << endl;
+		cout << myBoard->BoardToString();
 #endif
 	}
+	// FIXME: big questions: I think we need to maintain an invariant that after anything agent does to a board, the board remains the same?
+	// I(yg) made a function simulate actions that takes in the string of solution and runs them on a board *BUT* also undoes them.
+	//
+	while(solutionItr!=solutionMoves.begin()) {
+		solutionItr--;
+#ifdef INFO
+		cout<<"Undoing move "<<solutionItr->ToString()<<endl;
+#endif
+
+		myBoard->UndoMove(*solutionItr);
+	}
+	myBoard->restoreInitialPlayerPos();
 	return solution.str();
 }
 

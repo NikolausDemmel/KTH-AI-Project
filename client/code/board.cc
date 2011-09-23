@@ -144,6 +144,9 @@ void Board::simulateActions(const char* actions){
 			cout<<"up"<<endl;
 			pushed = doAction(Up);
 			PrintBoard();
+#ifdef INFO
+			cin.get();
+#endif
 			simulateActions(++actions);
 			undoAction(Up,pushed);
 			return;
@@ -151,6 +154,9 @@ void Board::simulateActions(const char* actions){
 			cout<<"down"<<endl;
 			pushed = doAction(Down);
 			PrintBoard();
+#ifdef INFO
+			cin.get();
+#endif
 			simulateActions(++actions);
 			undoAction(Down,pushed);
 			return;
@@ -158,6 +164,9 @@ void Board::simulateActions(const char* actions){
 			cout<<"left"<<endl;
 			pushed = doAction(Left);
 			PrintBoard();
+#ifdef INFO
+			cin.get();
+#endif
 			simulateActions(++actions);
 			undoAction(Left,pushed);
 			return;
@@ -165,6 +174,9 @@ void Board::simulateActions(const char* actions){
 			cout<<"right"<<endl;
 			pushed = doAction(Right);
 			PrintBoard();
+#ifdef INFO
+			cin.get();
+#endif
 			simulateActions(++actions);
 			undoAction(Right,pushed);
 			return;
