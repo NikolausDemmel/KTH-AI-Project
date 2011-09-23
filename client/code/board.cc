@@ -59,30 +59,54 @@ void Board::ApplyMove(const Move &move) {
 	// the new tile is in the direction that's stored in the move
 	// set the new tile to a tile with a box
 
-	mBoard[TileIndex(move.getBoxPos())] &= (~TileBox);
-	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] |= TileBox;
-	mPlayerPos = move.getBoxPos();
-	for(int j = 0; j < mBoxes.size(); j++){
-		if(mBoxes.at(j) == TileIndex(move.getBoxPos())){
-			mBoxes.at(j) = TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir());
-		}
-	}
+	int curr = TileIndex(move.getBoxPos());
+	int next = TileIndex(curr, move.getMoveDir());
 
+	updateHash(getZobristBox(curr));
+	updateHash(getZobristPlayer(mPlayerIndex));
 
+	mBoard[curr] &= (~TileBox);
+	mBoard[next] |= TileBox;
+	setPlayerPos(move.getBoxPos());
+
+	updateHash(getZobristBox(next));
+	updateHash(getZobristPlayer(mPlayerIndex));
+
+	mMissingGoals += (mBoard[curr] & TileGoal ? 1 : 0);
+	mMissingGoals -= (mBoard[next] & TileGoal ? 1 : 0);
+
+//	for (vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
+//		if (*it == curr) {
+//			*it = next;
+//		}
+//	}
 }
 	// move the box back
 void Board::UndoMove(const Move &move) {
 	// set the tile of the move-pos to tilebox
 	// the tile in the stored direction should be set to tileempty or tilegoal
-	mBoard[TileIndex(move.getBoxPos())] |= TileBox;
-	mBoard[TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())] &= (~TileBox);
-	mPlayerPos = Pos(move.getBoxPos(),move.getMoveDir(),-1);
 
-	for(int j = 0; j < mBoxes.size(); j++){
-		if(mBoxes.at(j) ==  TileIndex(TileIndex(move.getBoxPos()), move.getMoveDir())){
-		mBoxes.at(j) = TileIndex(move.getBoxPos());
-		}
-	}
+	int curr = TileIndex(move.getBoxPos());
+	int next = TileIndex(curr, move.getMoveDir());
+
+	updateHash(getZobristBox(next));
+	updateHash(getZobristPlayer(mPlayerIndex));
+
+	mBoard[curr] |= TileBox;
+	mBoard[next] &= (~TileBox);
+	setPlayerPos(Pos(move.getBoxPos(),move.getMoveDir(),-1));
+
+	updateHash(getZobristBox(curr));
+	updateHash(getZobristPlayer(mPlayerIndex));
+
+	mMissingGoals -= (mBoard[curr] & TileGoal ? 1 : 0);
+	mMissingGoals += (mBoard[next] & TileGoal ? 1 : 0);
+
+//	for (vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
+//		if (*it == next) {
+//			*it = curr;
+//		}
+//	}
 }
 bool Board::doAction(Dir toWhere) {
 	Pos next(mPlayerPos,toWhere);
@@ -95,7 +119,7 @@ bool Board::doAction(Dir toWhere) {
 		ApplyMove(tMove);
 		return true;
 	} else {
-		mPlayerPos=next;
+		setPlayerPos(next);
 		return false;
 	}
 }
@@ -107,7 +131,7 @@ void Board::undoAction(Dir fromWhere,bool unPush){
 		UndoMove(tMove);
 	} else {
 		if(mBoard[TileIndex(prev)] & (TileWall|TileBox)) throw "banging back";
-		else mPlayerPos = prev;
+		else setPlayerPos(prev);
 	}
 }
 
@@ -192,10 +216,12 @@ void Board::ClearFlags() {
 
 bool Board::isSolved() {
 
-	for(int i=0;i<mWidth*mHeight;i++)
-		if( (mBoard[i] & TileBox) && !(mBoard[i] & TileGoal) ) return false;
+	return mMissingGoals == 0;
 
-	return true;
+//	for(int i=0;i<mWidth*mHeight;i++)
+//		if( (mBoard[i] & TileBox) && !(mBoard[i] & TileGoal) ) return false;
+//
+//	return true;
 
 }
 
@@ -203,6 +229,9 @@ bool Board::isSolved() {
 // _breadth_ first search (to get the shortest possible way to get there).
 
 void Board::ParseBoard(const char* board) {
+
+	// TODO: detect malformed boards and throw error
+
 	mWidth = 0;
 	mHeight = 0;
 
@@ -236,13 +265,22 @@ void Board::ParseBoard(const char* board) {
 				mBoxes.push_back(TileIndex(x, y));
 			}
 			if (board[i] == '@' || board[i] == '+') {
-				mPlayerPos = Pos(x, y);
+				setPlayerPos(Pos(x, y));
 			}
 			++x;
 		}
 	}
 
+	initializeZobrist();
+
+	mHashValue = computeHashValue();
+	mMissingGoals = countMissingGoals();
 	mInitialPlayerPos = mPlayerPos;
+	mIndexBits = calculateIndexBits(mWidth*mHeight);
+}
+
+int Board::calculateIndexBits(int size) {
+	return ceil(log2(size));
 }
 
 	uint8_t Board::ParseTile(char c) {
@@ -300,6 +338,63 @@ const char* Board::EndFlagString(uint8_t flags) {
 		return "";
 }
 
+
+int Board::countMissingGoals() const {
+	int count = 0;
+	for(int i=0; i < mWidth*mHeight; ++i)
+		if( (mBoard[i] & TileBox) && !(mBoard[i] & TileGoal) )
+			++count;
+	return count;
+}
+
+void Board::initializeZobrist() {
+	mZobristBoxes.clear();
+	mZobristPlayer.clear();
+	for(int i = 0; i < mWidth*mHeight; ++i) {
+		mZobristBoxes.push_back(rand64());
+		mZobristPlayer.push_back(rand64());
+	}
+}
+
+// get the ZobristNumber of the tile at a certain index.
+uint64_t Board::getZobristBox(int tileIndex) const {
+	if (mBoard[tileIndex] & TileBox)
+		return mZobristBoxes[tileIndex];
+	else
+		return 0;
+}
+
+uint64_t Board::getZobristPlayer(int tileIndex) const {
+	if (tileIndex == mPlayerIndex)
+		return mZobristPlayer[tileIndex];
+	else
+		return 0;
+}
+
+// xor the number to the hash value
+void Board::updateHash(uint64_t zobristNumber) {
+	mHashValue ^= zobristNumber;
+}
+
+// computes the hash value from scratch
+uint64_t Board::computeHashValue() const {
+	uint64_t hash = 0;
+	for (int i = 0; i < mWidth*mHeight; ++i) {
+		hash ^= getZobristBox(i);
+		hash ^= getZobristPlayer(i);
+	}
+	return hash;
+}
+
+// computes an alternative hash value from scratch
+uint64_t  Board::computeHash2Value() {
+	uint64_t hash = mPlayerIndex;
+	for(vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
+		hash <<= mIndexBits;
+		hash |= *it;
+	}
+	return hash; // will always be != 0
+}
 
 
 };

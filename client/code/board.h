@@ -54,15 +54,11 @@ public:
 	// undo the move, change the board again
 	void UndoMove(const Move &move);
 
-
 	// calls VisitTile
 	// debugging
 	void GenerateMoves(vector<Move> &moves);
 
-	//TODO
 	bool isSolved();
-
-	//
 
 	bool doAction(Dir toWhere);
 
@@ -83,7 +79,7 @@ public:
 	}*/
 
 	void restoreInitialPlayerPos() {
-		mPlayerPos = mInitialPlayerPos;
+		setPlayerPos(mInitialPlayerPos);
 	}
 
 private:
@@ -94,12 +90,15 @@ private:
 	// reset the visit- and extra-flags
 	void ClearFlags();
 
+	int countMissingGoals() const;
 
 	void ParseBoard(const char* board);
 
 	inline bool IsIndex(int index) const {
 		return index >= 0 && index < mWidth*mHeight;
 	}
+
+	static int calculateIndexBits(int size);
 
 public:
 	inline int TileIndex(int x, int y) const {
@@ -144,9 +143,23 @@ public:
 		return mBoard[index];
 	}
 
+	uint64_t getHash() const {
+		return mHashValue;
+	}
+
+	uint64_t getHash2() {
+		return computeHash2Value();
+	}
+
 private:
+
 	inline Pos TileIndexToPos(int index) {
 		return Pos(index%mWidth, index/mWidth);
+	}
+
+	inline void setPlayerPos(Pos pos) {
+		mPlayerPos = pos;
+		mPlayerIndex = TileIndex(pos);
 	}
 
 	void SetTile(int x, int y, uint8_t value) {
@@ -169,14 +182,40 @@ private:
 
 
 
+	// create the array of zobrist numbers with random numbers;
+	void initializeZobrist();
+
+	// get the ZobristNumber of the tile at a certain index.
+	uint64_t getZobristBox(int tileIndex) const;
+	uint64_t getZobristPlayer(int tileIndex) const;
+
+	// xor the number to the hash value
+	void updateHash(uint64_t zobristNumber);
+
+	// computes the hash value from scratch
+	uint64_t computeHashValue() const ;
+
+	// computes an alternative hash value from scratch
+	uint64_t computeHash2Value();
+
 private:
-	// TODO: potential minor optimization: stor mSize to avoid calculation mWidth*mHeight.
+	// TODO: potential minor optimization: store mSize to avoid calculation mWidth*mHeight.
+
+	int mIndexBits;
+
 	int mWidth;
 	int mHeight;
 	Pos mPlayerPos;
+	int mPlayerIndex;
 	Pos mInitialPlayerPos;
-	uint8_t *mBoard;
+	uint8_t *mBoard; // use vector instead
 	vector<int> mBoxes; // save the index of the boxes on the boards
+
+	int mMissingGoals;
+
+	uint64_t mHashValue;
+	vector<uint64_t> mZobristBoxes;
+	vector<uint64_t> mZobristPlayer;
 };
 
 };

@@ -16,7 +16,7 @@ run: client
 build-opt: client-opt
 
 client-opt: *.cc *.h
-	g++ *.cc $(CXXFLAGS) -O2 -DNDEBUG -o client-opt
+	g++ *.cc $(CXXFLAGS) -O3 -DNDEBUG -o client-opt
 
 run-opt: client-opt
 	./client-opt $(SERVER) $(PORT) $(BOARD)

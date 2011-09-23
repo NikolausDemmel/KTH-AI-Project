@@ -15,6 +15,8 @@ int main(int pArgC, char* pArgs[])
         return -1;
     }
 
+    // FIXME: Should we call srand???
+
     soko::CSocket lSocket(pArgs[1],pArgs[2]);
 
     lSocket.WriteLine(pArgs[3]);

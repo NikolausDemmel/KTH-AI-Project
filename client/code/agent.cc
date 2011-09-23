@@ -108,41 +108,57 @@ string Agent::submitSolution(){
 
  */
 
-void Agent::findSolution() {
+void Agent::findSolution()
+{
 
 	SearchResult result;
 	int depth = 1;
+
 	while(!solutionMoves.empty())
-	solutionMoves.pop();
-//	solutionMoves.clear();
+		solutionMoves.pop();
+	//	solutionMoves.clear();
+
 	do {
 #ifdef INFO
-		cout << "Trying depth " << depth << endl;
+		cout << endl << "Trying depth " << depth << endl;
 #endif
 		result = depthLimitedSearch(depth++);
+
+#ifdef INFO
+		mHashTable.printStatistics();
+#endif
+		mHashTable.clear();
 	} while(result==CutOff);
+
+#ifdef INFO
+		cout << "Result of search was " << SearchResultToString(result) << endl;
+#endif
 
 }
 
-SearchResult Agent::depthLimitedSearch(int depth){
+SearchResult Agent::depthLimitedSearch(int depth)
+{
 
 	// Base Cases
-	if ((*myBoard).isSolved()) return Solution;
 	if (depth == 0) return CutOff;
+	if (myBoard->isSolved()) return Solution;
+
+	if (mHashTable.lookup(myBoard->getHash(), depth))
+		return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 
 	bool cutOff_Occured = false;
 	vector<Move> possibleMoves;
 	SearchResult result;
 	myBoard->GenerateMoves(possibleMoves);
-	for(int i = 0; i < possibleMoves.size(); i++) {
-		myBoard->ApplyMove(possibleMoves.at(i));
+	for(vector<Move>::iterator it = possibleMoves.begin(); it != possibleMoves.end(); ++it) {
+		myBoard->ApplyMove(*it);
 //		myBoard->PrintBoard();
 		result = depthLimitedSearch(depth-1);
-		myBoard->UndoMove(possibleMoves.at(i));
+		myBoard->UndoMove(*it);
 
 		if(result==CutOff) cutOff_Occured = true;
 		else if (result!=Failure) {
-			solutionMoves.push(possibleMoves.at(i)); //NOTE using a stack not a list
+			solutionMoves.push(*it); //NOTE using a stack not a list
 			//solutionMoves.insert(it,possibleMoves.at(i));
 			return Solution;
 		}	//else : solution not found, try next node :/
@@ -189,6 +205,9 @@ private:
 
 bool Agent::shortestPathSearch(string &actions, const Board &board, Pos start, Pos end)
 {
+	// This uses dijkstra to search for the end
+	// Since we have this very special layout we don't ever need to update a node.
+
 	stringstream ss;
 
 	vector<TileNode> nodes(board.size());
@@ -253,7 +272,10 @@ string Agent::executeSolution() {
 		solutionMoves.pop();
 		string actions;
 		actionsForMove(actions, *myBoard, move);
-		solution <<  actions;
+		solution << actions;
+#ifdef INFO
+		solution << " "; // use this to tell moves apart
+#endif
 		myBoard->ApplyMove(move);
 #ifdef INFO
 		cout << "Applying move " << move.ToString() << endl;

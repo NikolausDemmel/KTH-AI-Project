@@ -18,6 +18,10 @@
 // #define VERBOSE_GENERATE_MOVES
 
 
+// TODO: Use boost, e.g. for foreach
+
+// IDEA: store a list of indeces, that are actually relevat!!!
+
 
 using namespace std;
 
@@ -94,7 +98,15 @@ public:
 	coord_t x, y;
 };
 
+
+enum SearchResult {
+	Solution,
+	Failure,
+	CutOff
+};
+
 const char* DirToString(Dir dir);
+const char* SearchResultToString(SearchResult result);
 Dir invertDirection(Dir dir);
 char directionToAction(Dir dir);
 
@@ -103,6 +115,8 @@ inline bool isTileFree(uint8_t tile)
 	tile &= ~TileFlagMask;
 	return (tile == TileEmpty) || ((tile & TileGoal) && !(tile & TileBox));
 }
+
+uint64_t rand64();
 
 };
 

@@ -10,18 +10,13 @@
 
 #include "common.h"
 #include "board.h"
-//#include <list>
+#include "hash_table.h"
+#include <list>
 #include <stack>
 
 using namespace std;
 
 namespace mnp {
-
-enum SearchResult {
-	Solution,
-	Failure,
-	CutOff
-};
 
 class Agent{
 public:
@@ -29,7 +24,10 @@ public:
 	// search with iterative deepening or breadth first or something until it finds a solution
 	// and the returns the solution string to the client who sends it to the server.
 
-	//Agent();
+	Agent():
+		mHashTable(26) // 2^26 entries if 64 bit values should be 512 MB
+	{
+	}
 
 	//~Agent();
 
@@ -60,6 +58,8 @@ public:
 private:
 
 	Board *myBoard;
+
+	HashTable mHashTable;
 public:
 	stack<Move> solutionMoves;
 
