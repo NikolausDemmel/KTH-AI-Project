@@ -1,0 +1,8 @@
+Class: starts with capital letter, camel case
+Function: starts with small letter, camel case
+Parameter: starts with small letter, underscore for word conjunctions
+
+Member variable: starts with m + capital letter (e.g. mBoard)
+Global variable: starts with g + capital letter
+Local variable: starts with small letter, underscore for word conjunctions
+
