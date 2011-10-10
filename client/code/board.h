@@ -8,6 +8,7 @@
 #ifndef BOARD_H_
 #define BOARD_H_
 
+#include "tile.h"
 #include "common.h"
 #include "move.h"
 #include <string>
@@ -23,6 +24,10 @@
 using namespace std;
 
 namespace mnp {
+
+// TODO: evaluate if it makes sense to have an array of indices of the non-wall tiles
+
+
 
 class Board
 {
@@ -173,6 +178,8 @@ private:
 	// returns the character of the tile, used e.g. for printing the board
 	static char TileCharacter(uint8_t t, TileNode *node);
 
+
+
 	// FlagString returns the string-code for the color of the tile
 	// set colour if tile is visited, ...
 	static const char* FlagString(uint8_t tile, uint8_t flags);
@@ -181,6 +188,9 @@ private:
 	static const char* EndFlagString(uint8_t flags);
 
 
+	/**
+	 * HASH
+	 */
 
 	// create the array of zobrist numbers with random numbers;
 	void initializeZobrist();
@@ -198,25 +208,64 @@ private:
 	// computes an alternative hash value from scratch
 	uint64_t computeHash2Value();
 
+	/**
+	 * GROUPINFO
+	 */
+
+	bool isReachable(index tile) {
+		return sameGroup(mPlayerIndex, tile);
+	}
+
+	bool sameGroup(index a, index b) {
+		// TODO
+	}
+
+	void joinGroup(index a, index b) {
+		// set parent of representative of b to representative of a
+		// TODO
+	}
+
+	void splitGroup(index a, index b) {
+
+	}
+
+
+
 private:
-	// TODO: potential minor optimization: store mSize to avoid calculation mWidth*mHeight.
+	// TODO: store list of possible moves here or in agent class
 
-	int mIndexBits;
+	index_t mSize; // mWidth * mHeight
+	size_t mWidth;
+	size_t mHeight;
+	size_t mIndexBits; // How many bits do we need to store an index. esssentially ceil(log2(size)).
+	size_t mNumberOfBoxes; // How many boxes are on the board. Obviously invariant over one particular game.
+	index_t mInitialPlayerIndex; // What was the initial player position. We need this to be able to undo the first move.
 
-	int mWidth;
-	int mHeight;
-	Pos mPlayerPos;
-	int mPlayerIndex;
-	Pos mInitialPlayerPos;
-	uint8_t *mBoard; // use vector instead
-	vector<int> mBoxes; // save the index of the boxes on the boards
+	index_t mPlayerIndex; // What tile is the player currently on.
 
-	int mMissingGoals;
+	// We use an array of tiles to represent the board. The size is mSize.
+	// Position 0,0 corresponds to the bottom left cornern. Position mWidth, mHeight to the top right corner.
+	// Also, position x,y on the board corresponds to the array index y*mWidth+x.
+	// However internally we use only indices directly and avoid going back and forth
+	// between index and coordinate representation of a position.
+	vector<Tile> mTiles;
 
+	// Array of all boxes, so that we can avoid going through the whole board when
+	// we want to do some operation on all boxes.
+	vector<index_t> mBoxes;
+
+	// This is an array if indices
+	index_t *mGroupInfo; // TODO: better name? TODO: use uint8_t ? TODO: evaluate: save group size ?
+
+	// How many goals are lacking a box. If this reaches 0 we have solved the board.
+	size_t mMissingGoals;
+
+	// The current hash value and the lists of random numbers for generating / updated this value.
 	uint64_t mHashValue;
-	vector<uint64_t> mZobristBoxes;
-	vector<uint64_t> mZobristPlayer;
+	vector<uint64_t> mZobristBoxes; // array of size mSize
+	vector<uint64_t> mZobristPlayer; // array of size mSize
 };
+
 
 };
 
