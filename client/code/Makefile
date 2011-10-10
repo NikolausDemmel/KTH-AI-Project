@@ -1,6 +1,9 @@
 
 SERVER=130.237.218.85
 PORT=7777
+# 7778 trivial boards
+# 7781 and 7782 have similar difficulty to the ones used in evaluation
+
 BOARD=1
 
 all: build
