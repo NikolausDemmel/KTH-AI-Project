@@ -126,7 +126,8 @@ void Agent::findSolution()
 #ifdef INFO
             mHashTable.printStatistics();
 #endif
-            mHashTable.clear();
+            // FIXME:
+            // mHashTable.clear();
 		} while(result==CutOff);
 		myBoard->restoreInitialPlayerPos();
 		if (result==Failure) throw "board can't be solved.";

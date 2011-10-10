@@ -13,6 +13,8 @@
 #include <sstream>
 #include <cassert>
 
+#include "definitions.h"
+
 #define DEBUG
 #define INFO
 #define VERBOSE_SHORTEST_PATH
@@ -28,24 +30,6 @@ using namespace std;
 
 namespace mnp {
 
-// TODO: Maybe change to this scheme for maximum (?) space compression:
-// 1 bit for floor/wall
-// 1 bit for goal/no-goal
-// 1 bit for box/no-box
-// rest of the bits for flags
-// invalid could be represented as some senseless combination, eg. wall & box
-// test for "free to move to" would be something like (wall | box) & my-tile == 0
-
-enum Tile {
-	TileEmpty		= 1 << 0,
-	TileWall		= 1 << 1,
-	TileGoal		= 1 << 2,
-	TileBox			= 1 << 3,
-	TileVisitedFlag	= 1 << 4,
-	TileExtraFlag	= 1 << 5
-};
-
-static const uint8_t TileFlagMask = TileVisitedFlag | TileExtraFlag; // should be logical or of all flag bits.
 
 enum Dir {
 	Up = 0,
@@ -54,7 +38,7 @@ enum Dir {
 	Right = 3
 };
 
-typedef unsigned int coord_t;
+
 
 class Pos
 {
