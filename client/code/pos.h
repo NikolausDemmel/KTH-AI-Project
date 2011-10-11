@@ -10,9 +10,14 @@
 
 
 #include "definitions.h"
+#include <string>
+#include <sstream>
 
 
 namespace mnp {
+
+
+class Board;
 
 
 class Pos
@@ -29,10 +34,7 @@ public:
 		y = 0;
 	}
 
-	Pos(index_t index, const Board* board) {
-		x = board->indexToX(index);
-		y = board->indexToY(index);
-	}
+	Pos(index_t index, const Board* board);
 
 	// pass -1 as invert to get the inverse direction, pass 2 to offset 2 tiles in the given direction etc...
 	Pos(Pos currentPos, Dir offset, int factor = 1) {

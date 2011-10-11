@@ -9,6 +9,7 @@
 #define MOVE_H_
 
 #include "definitions.h"
+#include "pos.h"
 
 namespace mnp {
 
@@ -23,22 +24,20 @@ public:
 	{
 	}
 
-	Move(Pos pos, Dir dir, const Board *board):
-		mBoxIndex(board->tileIndex(pos)),
-		mDir(dir)
-	{
-	}
+	Move(Pos box_pos, Dir dir, const Board *board);
 
-	string toString(const Board *board = 0) const;
-
-	Pos getBoxIndex() const{
+	index_t getBoxIndex() const{
 		return mBoxIndex;
 	}
+
 	Dir getMoveDir() const {
 		return mDir;
 	}
 
-	index_t getPlayerIndex(const Board *board = 0) const;
+	index_t getPlayerIndex(const Board *board) const;
+
+
+	string toString(const Board *board = 0) const;
 
 private:
 	index_t mBoxIndex;

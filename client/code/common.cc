@@ -8,9 +8,8 @@
 #include "common.h"
 #include <cmath>
 #include <limits>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
+#include <functional>
 
 
 namespace mnp {
@@ -76,19 +75,22 @@ struct Rand64 {
 	// FIXME: seed?
 
 	Rand64() :
-		gen(),
-		dist(0, numeric_limits<uint64_t>::max()),
-		gen64(gen, dist)
+		rd(),
+		engine(rd()),
+		dist(0, numeric_limits<uint64_t>::max())
 	{
+		rnd = std::bind(dist, engine);
 	}
 
 	uint64_t rand() {
-		return gen64();
+		return rnd();
 	}
+
 private:
-	boost::mt19937 gen;
-	boost::uniform_int<uint64_t> dist;
-	boost::variate_generator<boost::mt19937&, boost::uniform_int<uint64_t> > gen64;
+	std::random_device rd;
+	std::mt19937 engine;
+	std::uniform_int_distribution<uint64_t> dist;
+	std::function<uint64_t()> rnd;
 };
 
 Rand64 gRand64;
