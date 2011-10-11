@@ -15,7 +15,7 @@
 
 namespace mnp {
 
-const char* DirToString(Dir dir)
+const char* dirToString(Dir dir)
 {
 	switch(dir) {
 	case Up:
@@ -31,7 +31,7 @@ const char* DirToString(Dir dir)
 	}
 }
 
-const char* SearchResultToString(SearchResult result)
+const char* searchResultToString(SearchResult result)
 {
 	switch(result) {
 	case Solution:

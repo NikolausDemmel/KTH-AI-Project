@@ -8,37 +8,41 @@
 #ifndef MOVE_H_
 #define MOVE_H_
 
-#include "common.h"
+#include "definitions.h"
 
 namespace mnp {
+
+class Board;
 
 class Move
 {
 public:
-	Move(const Pos &pos, Dir dir):
-		mBoxPos(pos), mDirection(dir) {
+	Move(index_t box_index, Dir dir):
+		mDir(dir),
+		mBoxIndex(box_index)
+	{
 	}
 
-	string ToString() const {
-		stringstream ss;
-		ss << "Move box " << mBoxPos.ToString() << " " << DirToString(mDirection);
-		return ss.str();
+	Move(Pos pos, Dir dir, const Board *board):
+		mBoxIndex(board->tileIndex(pos)),
+		mDir(dir)
+	{
 	}
 
-	Pos getBoxPos() const{
-		return mBoxPos;
+	string toString(const Board *board = 0) const;
+
+	Pos getBoxIndex() const{
+		return mBoxIndex;
 	}
 	Dir getMoveDir() const {
-		return mDirection;
+		return mDir;
 	}
 
-	Pos getPlayerPos() const {
-		return Pos(mBoxPos, invertDirection(mDirection));
-	}
+	index_t getPlayerIndex(const Board *board = 0) const;
 
 private:
-	Pos mBoxPos;
-	Dir mDirection;
+	index_t mBoxIndex;
+	Dir mDir;
 };
 
 };
