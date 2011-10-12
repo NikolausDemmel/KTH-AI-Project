@@ -10,105 +10,12 @@
 
 namespace mnp {
 
-/*
-	void Agent::search(Board board){
-		int val = dfs(board, 2);
-
-void Agent::search(Board board){
-	vector<Move> solutionMoves;
-	bool val = false;
-	int depth = 1;
-	while(!val){
-	val = dfs(board, depth, solutionMoves); // as long as val is false, increase the depth
-	depth++;
-	}
-	// now we have to call findPath
-}
-
-string Agent::findPath(Board board){
-
-	//1st step: get position of the player.
-	Pos Player = board.getPlayerPos();
-	 // find path to new position, which is the index of the box stored in the move and the opposite direction
-	 // loop over solutionMoves
-	 // find path by breadth first search - possible tiles are TileEmpty and TileGoal
-	 // we get the shortest path (if there are more paths)
-	 // save path into a string
-	 // then: applymove and save it, too
-	 // then we are on previous position of the 1st box.
-	 // next step: find path to next position and so on... don't forget to save :)
-	 // do this for all moves that provide the solution
-
-	}
-
-
-
-vector<int> Agent::pathSearch(Board board, Pos start, Pos end){ // TODO
-
-	vector<int> path;
-	//path.push_back(board.TileIndex(start));
-
-		int current = board.TileIndex(start);
-		if(current == board.TileIndex(end))
-			return path; // TODO:  we want to return the string to the end-position
-
-		// TODO: find the shortest (?) path from start to end position, returning as a string would be fine
-		// if you treat it as a Move you can use one function for ToString
-		// so store pos + next dir
-	}
-
-
-bool Agent::dfs(Board board, int depth, vector<Move> &solutionMoves){
-
-		bool foundsolution = false;
-
-		// do we have the solution? yes -> return sequence of moves
-		int boxingoal=0;
-
-	for(int j = 0; j < board.getBoxes().size(); j++)
-	{
-	if(board.getBoard()[board.getBoxes().at(j)]== TileGoal){ // FIXME: doesn't look very good - does this work?
-		boxingoal++;
-	}
-	}
-	if(boxingoal == board.getBoxes().size()){  // every box in the goal? - we are done
-		return true;
-	}
-
-
-	vector<Move> possibleMoves;
-
-	board.GenerateMoves(possibleMoves);
-	for(int i = 0; i < possibleMoves.size(); i++)
-	{
-		board.ApplyMove(possibleMoves.at(i));
-		foundsolution = dfs(board, depth-1, solutionMoves);
-		if(foundsolution)
-		{
-			board.ApplyMove(possibleMoves.at(i));
-			foundsolution = dfs(board, depth-1);
-			if(foundsolution)
-			{
-				solutionMoves.push_back(possibleMoves.at(i));
-			}
-			board.UndoMove(possibleMoves.at(i));
-		}
-
-	}
-
-	return foundsolution;
-}
-
-string Agent::submitSolution(){
-			return mSolution; // TODO
-}
-
- */
-
 void Agent::findSolution()
 {
-	SearchResult result;
+
+	SearchResult resultForward, resultBackward;
 	uint depth = 1;
+	uint64_t hashMeeting = 0;
 
 	mSolutionMoves.clear();
 
@@ -118,42 +25,86 @@ void Agent::findSolution()
 		cout << "[agent] # of boxes " << mBoard->mBoxes.size() << endl;
 		cout << "[agent] log size of board " << mBoard->mIndexBits << endl;
 #endif
-		result = depthLimitedSearch(depth++);
+		resultForward = depthLimitedSearch(depth, mBoard, Forward, hashMeeting);
+		resultBackward = depthLimitedSearch(depth, &mBackBoard, Backward, hashMeeting);
+		++depth;
 #ifdef INFO
-		cout << "[agent] search result for this depth: " << cSearchResultNames[result] << endl;
+		cout << "[agent] search result for this depth: forward: " << cSearchResultNames[resultForward] << " ; backward: " << cSearchResultNames[resultBackward] << endl;
 		mHashTable.printStatistics();
+		mBackwardHashTable.printStatistics();
 #endif
 		// FIXME:
 		// mHashTable.clear();
 		mHashTable.clearStatistic();
-	} while (result == CutOff);
+		mBackwardHashTable.clearStatistic();
+	} while (resultForward == CutOff && resultBackward == CutOff);
 
+	if (resultBackward == SolutionMeeting && resultForward == CutOff) {
+		resultForward = depthLimitedSearch(depth--, mBoard, Forward, hashMeeting);
+	}
+
+	cout << "After search" << endl;
+	foreach(Move m, mSolutionMoves) {
+		cout << m.toString(mBoard);
+	}
 	mBoard->restoreInitialPlayerIndex();
 
 #ifdef INFO
-	cout << "[agent] result of search was " << cSearchResultNames[result] << endl;
+	cout << "Result of search was: forward: " << cSearchResultNames[resultForward] << " ; backward: " << cSearchResultNames[resultBackward] << endl;
 #endif
 
-	if (result==Failure)
-		throw "[agent] board can't be solved."; // Fail more grance-fully
+	if (resultForward==Failure || resultBackward==Failure)
+		throw "board can't be solved."; // Fail more grance-fully
 	else
 		return;
-
 }
 
-SearchResult Agent::depthLimitedSearch(uint depth)
+
+SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting)
 {
 
 	// 1. Base Cases
 	if (depth == 0) return CutOff;
-	if (mBoard->isSolved()) return Solution;
+
+	if (type == Forward && mBoard->isSolved()) return Solution; //FIXME: if type is backward, return "Solution" if boxes are at initial positions
+																//(should not happen, because forward and backward should meet somewhere before)
 
 	// 2. Hashtable lookup
-	if (mHashTable.lookup(mBoard->getHash(), depth))
-		return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
+	if (type ==  Forward) {
+		if (hashMeeting != 0) {
+			if (hashMeeting == mBoard->getHash())
+				return SolutionMeeting;
+		}
+		else if (mBackwardHashTable.compare(mBoard->getHash())) {
+					cout << "ForwardHash: " << mBoard->getHash() << endl;
+					hashMeeting = mBoard->getHash();
+					return SolutionMeeting;
+				}
 
+		if (mHashTable.lookup(mBoard->getHash(), depth))
+			return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
+
+
+	}
+	else {
+		if (hashMeeting != 0) {
+			if(hashMeeting == mBackBoard.getHash())
+				return SolutionMeeting;
+		}
+		else if (mHashTable.compare(mBackBoard.getHash())) {
+					cout << "BackwardHash: " << mBackBoard.getHash() << endl;
+					hashMeeting = mBackBoard.getHash();
+					return SolutionMeeting;
+				}
+
+		if (mBackwardHashTable.lookup(mBackBoard.getHash(), depth)) {
+					return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
+		}
+
+	}
 	// 3. Deadlock detection
 	// TODO: Deadlock detection should kick in here:
+
 
 
 	// 4. Search one step deeper
@@ -161,20 +112,29 @@ SearchResult Agent::depthLimitedSearch(uint depth)
 	vector<Move> possible_moves;
 	SearchResult result;
 
-	mBoard->generateMoves(possible_moves);
+	board->generateMoves(possible_moves, type);
 
-	foreach ( const Move &move, possible_moves) {
+	foreach ( Move &move, possible_moves) {
 
-		mBoard->applyMove(move);
+		board->applyMove(move, type);
 //		myBoard->PrintBoard();
-		result = depthLimitedSearch(depth-1);
-		mBoard->undoMove(move);
+		result = depthLimitedSearch(depth-1, board, type, hashMeeting);
+		board->undoMove(move, type);
+
 
 		if (result==CutOff) {
 			cutoff_occured = true;
 		} else if (result != Failure) {
-			mSolutionMoves.push_front(move);
-			return Solution;
+			if (type == Forward) {
+				mSolutionMoves.push_front(move);
+			}
+			if (result == SolutionMeeting && type == Backward) {
+				move.setMoveDir(invertDirection(move.getMoveDir()));
+				move.setBoxIndex(board->tileIndex(move.getBoxIndex(), move.getMoveDir(), -1));
+				mSolutionMoves.push_back(move);
+				//return SolutionMeeting;
+			}
+			return SolutionMeeting;
 		}
 	}
 
@@ -186,6 +146,22 @@ SearchResult Agent::depthLimitedSearch(uint depth)
 
 void Agent::setBoard(Board *board) {
 	mBoard = board;
+}
+
+void Agent::setBackBoard(Board board) {
+	mBackBoard = board;
+	int boxIndex = 0;
+	for (vector<Tile>::iterator it = mBackBoard.mTiles.begin(); it != mBackBoard.mTiles.end(); ++it) {
+		if (it->isBox()) {
+			it->removeBox();
+		}
+		if (it->isGoal()){
+			it->setBox(boxIndex);
+			boxIndex++;
+		}
+	}
+	mBackBoard.recomputeHashValue();
+
 }
 
 string Agent::executeSolution() {
@@ -203,7 +179,6 @@ string Agent::executeSolution() {
 
 	for(; move_iter != mSolutionMoves.end(); ++move_iter) {
 		const Move &move = *move_iter;
-
 		string actions;
 		if (! (mBoard->actionsForMove(actions, move))) {
 			throw "Invalid move sequence.";
@@ -214,10 +189,12 @@ string Agent::executeSolution() {
 		solution << " "; // use this to tell moves apart
 #endif
 
-		mBoard->applyMove(move);
+		mBoard->applyMove(move, Forward);
 
 #ifdef INFO
-		cout << "Applying move " << move.toString(mBoard) << endl;
+
+		cout << "Applying move "<< endl;
+		cout << "Applying move "<< move.toString(mBoard) << endl;
 		mBoard->printBoard();
 #endif
 
@@ -231,7 +208,7 @@ string Agent::executeSolution() {
 #ifdef INFO
 		cout << "Undoing move " << move_iter->toString(mBoard) << endl;
 #endif
-		mBoard->undoMove(*move_iter);
+		mBoard->undoMove(*move_iter, Forward);
 	}
 	mBoard->restoreInitialPlayerIndex();
 

@@ -159,6 +159,36 @@ public:
 		return false;
 	}
 
+	bool compare(uint64_t hash) {
+		uint64_t index = getIndex(hash);
+		uint64_t value = mTable[index];
+
+		if (value == 0) {
+			return false;
+		}
+		if (value == hash) {
+			return true;
+		}
+
+		int64_t new_index = index;
+
+		for (uint i = 1;; i++) {
+			if (i > 10) { //hashtable is quite full
+				return false;
+			}
+			//cout << "i: " << i << endl;
+			new_index = (new_index + i*i) % mSize; //TODO: hash +c*i² +c mod x
+			//cout << "neuer Index: " << new_index << endl;
+			if (mTable[new_index] == 0) {
+				return false;
+			}
+			value = mTable[new_index];
+			if (value == hash) {
+				return true;
+			}
+		}
+	}
+
 #ifdef INFO
 	void printStatistics() {
 		cout << "Hash table statistics:" << endl;

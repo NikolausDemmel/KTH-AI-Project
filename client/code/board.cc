@@ -83,7 +83,7 @@ string Board::boardToString(uint8_t printFlags, const vector<TileNode> * const n
 }
 
 // applies a move, so it only moves a box
-void Board::applyMove(const Move &move) {
+void Board::applyMove(const Move &move, SearchType type = Forward) {
 
 	index_t curr = move.getBoxIndex();
 	index_t next = move.getNextIndex(this);
@@ -93,13 +93,19 @@ void Board::applyMove(const Move &move) {
 
 	int box = mTiles[curr].removeBox();
 	mTiles[next].setBox(box);
-	setPlayerIndex(curr);
+
+	if (type == Forward) {
+		setPlayerIndex(curr);
+		mMissingGoals += (mTiles[curr].isGoal() ? 1 : 0);
+		mMissingGoals -= (mTiles[next].isGoal() ? 1 : 0);
+	}
+	else {
+		setPlayerIndex(tileIndex(next, move.getMoveDir(), 1));
+	}
 
 	updateHash(getZobristBox(next));
 	updateHash(getZobristPlayer(mPlayerIndex));
 
-	mMissingGoals += (mTiles[curr].isGoal() ? 1 : 0);
-	mMissingGoals -= (mTiles[next].isGoal() ? 1 : 0);
 
 	// FIXME
 //	for (vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
@@ -109,8 +115,9 @@ void Board::applyMove(const Move &move) {
 //	}
 }
 
+
 // move the box back
-void Board::undoMove(const Move &move) {
+void Board::undoMove(const Move &move, SearchType type = Forward) {
 
 	index_t curr = move.getBoxIndex();
 	index_t next = move.getNextIndex(this);
@@ -120,13 +127,19 @@ void Board::undoMove(const Move &move) {
 
 	int box = mTiles[next].removeBox();
 	mTiles[curr].setBox(box);
-	setPlayerIndex(move.getPlayerIndex(this));
+
+	if (type == Forward) {
+		setPlayerIndex(move.getPlayerIndex(this));
+		mMissingGoals -= (mTiles[curr].isGoal() ? 1 : 0);
+		mMissingGoals += (mTiles[next].isGoal() ? 1 : 0);
+	}
+	else {
+		setPlayerIndex(next);
+	}
 
 	updateHash(getZobristBox(curr));
 	updateHash(getZobristPlayer(mPlayerIndex));
 
-	mMissingGoals -= (mTiles[curr].isGoal() ? 1 : 0);
-	mMissingGoals += (mTiles[next].isGoal() ? 1 : 0);
 
 	// FIXME:
 //	for (vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
@@ -144,7 +157,7 @@ bool Board::doAction(Dir to) {
 	} else if (mTiles[next].isBox() ) {
 		cout << "push at " << indexToPos(mPlayerIndex).toString() << cDirs[to] << endl;
 		Move move(next, to);
-		applyMove(move);
+		applyMove(move, Forward);
 		return true;
 	} else {
 		setPlayerIndex(next);
@@ -156,7 +169,7 @@ void Board::undoAction(Dir from, bool unpush){
 	index_t prev = tileIndex(mPlayerIndex, from, -1);
 	if (unpush) {
 		Move move(mPlayerIndex, from);
-		undoMove(move);
+		undoMove(move, Forward);
 	} else {
 		if (!mTiles[prev].isFree()) throw "[board] banging back in the wall :-/";
 		else setPlayerIndex(prev);
@@ -216,11 +229,18 @@ void Board::simulateActions(const char* actions){
 	}
 }
 
+
 // FIXME: would it not be quicker to incrementally update all the reachability information
 // also maybe store the boxes as a list of positions
-void Board::generateMoves(vector<Move> &moves)
+void Board::generateMoves(vector<Move> &moves, SearchType type)
 {
-	visitTile(mPlayerIndex, moves);
+	if (type == Forward) {
+		visitTile(mPlayerIndex, moves);
+	}
+	else {
+		reverseVisitTile(mPlayerIndex, moves);
+	}
+
 #ifdef VERBOSE_GENERATE_MOVES
 	cout << boardToString(Tile::VisitedFlag | Tile::ExtraFlag);
 	cout << "Possible moves:" << endl;
@@ -242,6 +262,22 @@ void Board::visitTile(index_t tile, vector<Move> &moves)
 				moves.push_back(Move(next, dir));
 			} else if (mTiles[next].isFree()) {
 				visitTile(next, moves);
+			}
+		}
+	}
+}
+
+void Board::reverseVisitTile(index_t tile, vector<Move> &moves)
+{
+	if ( !(mTiles[tile].flagsSet(Tile::VisitedFlag)) ) {
+		mTiles[tile].setFlags(Tile::VisitedFlag);
+		foreach (Dir dir, cDirs) {
+			index_t next = tileIndex(tile, dir);
+			if (mTiles[next].isBox() && mTiles[tileIndex(tile, invertDirection(dir))].isFree()) {
+				mTiles[tile].setFlags(Tile::ExtraFlag);
+				moves.push_back(Move(next, invertDirection(dir)));
+			} else if (mTiles[next].isFree()) {
+				reverseVisitTile(next, moves);
 			}
 		}
 	}
@@ -419,6 +455,8 @@ void Board::updateHash(uint64_t zobristNumber) {
 	mHashValue ^= zobristNumber;
 }
 
+
+
 // computes the hash value from scratch
 uint64_t Board::computeHashValue() const {
 	uint64_t hash = 0;
@@ -447,7 +485,6 @@ void Board::setPlayerIndex(index_t player) {
 void Board::restoreInitialPlayerIndex() {
 	setPlayerIndex(mInitialPlayerIndex);
 }
-
 
 
 bool Board::shortestPathSearch(string &actions, index_t start, index_t end) const
@@ -510,7 +547,6 @@ bool Board::actionsForMove(string &actions, const Move &move) const
 	}
 	return false;
 }
-
 
 
 

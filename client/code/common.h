@@ -32,6 +32,11 @@ using namespace std;
 
 namespace mnp {
 
+enum SearchType {
+		Forward 	= 0,
+		Backward	= 1 << 0
+	};
+
 Dir invertDirection(Dir dir);
 char directionToAction(Dir dir);
 

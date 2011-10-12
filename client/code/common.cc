@@ -15,6 +15,7 @@
 namespace mnp {
 
 
+
 Dir invertDirection(Dir dir) {
 	switch(dir) {
 	case Up:

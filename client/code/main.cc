@@ -49,6 +49,7 @@ int main(int pArgC, char* pArgs[])
 
     Agent myAgent;
     myAgent.setBoard(&board);
+    myAgent.setBackBoard(board);
     myAgent.findSolution();
 
 //

@@ -38,7 +38,7 @@ public:
 	////////////////////////////////////////////////////////////////////////////////
 	// CONSTRUCTION
 	////////////////////////////////////////////////////////////////////////////////
-
+	Board(){};
 	Board(string board);
 	Board(const char* board);
 	Board(const char* fileName, unsigned int boardNumber);
@@ -59,22 +59,21 @@ public:
 
 
 	// change the board according to the move
-	void applyMove(const Move &move);
+	void applyMove(const Move &move, SearchType type);
 
 	// undo the move, change the board again
-	void undoMove(const Move &move);
-
-
+	void undoMove(const Move &move, SearchType type);
 
 	// calls visitTile
-	void generateMoves(vector<Move> &moves);
+	void generateMoves(vector<Move> &moves, SearchType type);
+
 
 private: // FIXME
 	// visit the neighboring tiles and set the visitflag
 	// if there is a neighboring box, add the tilepos + direction of the box to the vector of moves
 	void visitTile(index_t tileIndex, vector<Move> &moves);
 
-
+	void reverseVisitTile(index_t tile, vector<Move> &moves);
 
 	uint countMissingGoals() const;
 
@@ -96,7 +95,6 @@ private: // FIXME
 
 	void undoAction(Dir fromWhere, bool unPush);
 
-	// TODO: find another class where we can put this (maybe Board)
 	bool shortestPathSearch(string &actions, index_t start, index_t end) const;
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +116,7 @@ public:
 	}
 
 	inline coord_t indexToY(index_t index) const {
-		return index % mWidth;
+		return index / mWidth;
 	}
 
 	inline Pos indexToPos(index_t index) const {
@@ -217,6 +215,12 @@ public:
 		return mHashValue;
 	}
 
+
+	void recomputeHashValue() {
+		mHashValue = computeHashValue();
+	}
+
+
 private:
 
 	// create the array of zobrist numbers with random numbers;
@@ -234,6 +238,7 @@ private:
 
 	// computes an alternative hash value from scratch
 	uint64_t computeHash2Value();
+
 
 	////////////////////////////////////////////////////////////////////////////////
 	// GROUPINFO

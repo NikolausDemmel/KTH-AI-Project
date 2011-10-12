@@ -21,7 +21,8 @@ class Agent{
 public:
 
 	Agent():
-		mHashTable(26) // 2^26 entries if 64 bit values should be 512 MB
+		mHashTable(26), // 2^26 entries if 64 bit values should be 512 MB
+		mBackwardHashTable(26)
 	{
 	}
 
@@ -40,17 +41,21 @@ public:
 
 	void setBoard(Board *board);
 
+	void setBackBoard(Board board);
+
 	void findSolution();
 
-	SearchResult depthLimitedSearch(uint depth);
+	SearchResult depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting);
 
 	string executeSolution();
 
 private:
 
 	Board *mBoard;
+	Board mBackBoard;
 
 	HashTable mHashTable;
+	HashTable mBackwardHashTable;
 
 public: // FIXME: should be private
 

@@ -53,6 +53,7 @@ enum Dir {
 
 enum SearchResult {
 	Solution = 0,
+	SolutionMeeting,
 	Failure,
 	CutOff
 };
@@ -60,8 +61,8 @@ enum SearchResult {
 const Dir cDirs[] = { Up, Left, Down, Right };
 const cstring_t cDirNames[] = { "Up", "Left", "Down", "Right" };
 
-const SearchResult cSearchResults[] = { Solution, Failure, CutOff };
-const cstring_t cSearchResultNames[] = { "Solution", "Failure", "CutOff" };
+const SearchResult cSearchResults[] = { Solution, SolutionMeeting, Failure, CutOff };
+const cstring_t cSearchResultNames[] = { "Solution", "SolutionMeeting", "Failure", "CutOff" };
 
 
 }

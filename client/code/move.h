@@ -30,8 +30,16 @@ public:
 		return mBoxIndex;
 	}
 
+	void setBoxIndex(index_t boxIndex){
+		mBoxIndex = boxIndex;
+	}
+
 	Dir getMoveDir() const {
 		return mDir;
+	}
+
+	void setMoveDir(Dir dir) {
+		mDir = dir;
 	}
 
 	index_t getNextIndex(const Board *board) const;
