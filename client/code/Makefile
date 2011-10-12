@@ -5,14 +5,23 @@ PORT=7777
 # 7778 trivial boards
 # 7781 and 7782 have similar difficulty to the ones used in evaluation
 
-BOARD=3
+BOARD=1
+
+
+
+UNAME := $(shell uname -s)
+
+CPP=g++-4.5
+ifeq ($(UNAME),Darwin)
+	CPP=g++-mp-4.5
+endif
 
 all: build
 
 build: client
 
 client: *.cc *.h
-	g++-4.5 --std=gnu++0x *.cc $(CXXFLAGS) -g -Wall -o client
+	$(CPP) --std=gnu++0x *.cc $(CXXFLAGS) -g -Wall -o client
 
 run: client
 	./client $(SERVER) $(PORT) $(BOARD)
@@ -20,7 +29,7 @@ run: client
 build-opt: client-opt
 
 client-opt: *.cc *.h
-	g++-4.5 --std=gnu++0x *.cc $(CXXFLAGS) -O3 -DNDEBUG -o client-opt
+	$(CPP) --std=gnu++0x *.cc $(CXXFLAGS) -O3 -DNDEBUG -o client-opt
 
 run-opt: client-opt
 	./client-opt $(SERVER) $(PORT) $(BOARD)
