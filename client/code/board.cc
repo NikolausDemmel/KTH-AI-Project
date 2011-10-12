@@ -60,7 +60,7 @@ void Board::printBoard(uint8_t print_flags) const {
 }
 
 //creates a String that can be printed
-string Board::boardToString(uint8_t printFlags, const vector<TileNode> * const nodes) const
+string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * const nodes) const
 {
 	stringstream board;
 	for(int y = mHeight-1; y >= 0; --y) {
@@ -377,7 +377,7 @@ Tile Board::parseTile(char c) {
 }
 
 // character from tile ignoring the player
-char Board::tileCharacter(const Tile &tile, const TileNode * const node) {
+char Board::tileCharacter(const Tile &tile, const TileGraphNode * const node) {
 	switch(tile.static_type) {
 	case Tile::Empty:
 		if (tile.isBox())
@@ -494,13 +494,13 @@ bool Board::shortestPathSearch(string &actions, index_t start, index_t end) cons
 
 	stringstream ss;
 
-	vector<TileNode> nodes(mSize);
+	vector<TileGraphNode> nodes(mSize);
 
 	nodes[start].distance = 0;
 	nodes[start].visited = true;
 
-	TileNode::IndexComparator comparator(&nodes);
-	priority_queue<uint, vector<uint>, TileNode::IndexComparator> pq(comparator);
+	TileGraphNode::IndexComparator comparator(&nodes);
+	priority_queue<uint, vector<uint>, TileGraphNode::IndexComparator> pq(comparator);
 	pq.push(start);
 
 	while(!pq.empty()) {
