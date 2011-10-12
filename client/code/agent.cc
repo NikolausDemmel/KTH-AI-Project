@@ -156,7 +156,6 @@ SearchResult Agent::depthLimitedSearch(uint depth)
 	// TODO: Deadlock detection should kick in here:
 
 
-
 	// 4. Search one step deeper
 	bool cutoff_occured = false;
 	vector<Move> possible_moves;

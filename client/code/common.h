@@ -13,7 +13,7 @@
 #include <sstream>
 #include <cassert>
 #include <boost/foreach.hpp>
-
+#include <limits>
 #include "definitions.h"
 
 

@@ -34,6 +34,7 @@ public:
 	void clearStatistic() {
 		mMisses = 0;
 		mHits = 0;
+		mCollision = 0;
 		mMissesBecauseOverlap = 0;
 		mMissesBecauseZero = 0;
 		mMissesBecauseDepth = 0;
@@ -100,7 +101,60 @@ public:
 #endif
 			return true;
 		}
-		// TODO: implement some strategy to deal with collisions.
+
+		//collision occurred, find other position (at the moment with quadratic probing)
+		//TODO: think of other collision resolution
+#ifdef INFO
+		++mCollision;
+//
+//		uint64_t count = 0;
+//				for (int j = 0; j < mSize; j++) {
+//					if (mTable[j] != 0)
+//						count++;
+//				}
+//
+//		cout << "freie Plätze: " << mSize-count << endl;
+//		cout << "storedHash " << value << endl;
+//		cout << "newHash " << validation_hash << endl;
+#endif
+		int64_t new_index = index;
+
+		for (int i = 1;; i++) {
+			if (i > 10) { //hashtable is quite full
+				return false;
+			}
+			//cout << "i: " << i << endl;
+			new_index = new_index + i*i; //TODO: hash +c*i² +c mod x
+			//cout << "neuer Index: " << new_index << endl;
+			if (new_index > mSize) //TODO: end of hashtable
+				return true;
+			if (mTable[new_index] == 0) {
+#ifdef INFO
+				++mHits;
+#endif
+				mTable[new_index] = validation_hash;
+				mDepthTable[index] = remaining_depth;
+				//cout << "stored" << endl;
+				return false;
+			}
+			value = mTable[new_index];
+			if (value == validation_hash) {
+				if (mDepthTable[new_index] < remaining_depth) {
+					mDepthTable[new_index] = remaining_depth;
+#ifdef INFO
+					++mMissesBecauseDepth;
+#endif
+					return false;
+				}
+#ifdef INFO
+				++mHits;
+				//cout << "same hash" << endl;
+#endif
+				return true;
+			}
+		}
+
+
 #ifdef INFO
 		++mMissesBecauseOverlap;
 #endif
@@ -115,6 +169,7 @@ public:
 		cout << setw(40) << "Filled (in %): " << setw(10) << (100*mEntries) / mSize << endl;
 		cout << setw(40) << "Misses: " << setw(10) << mMisses << endl;
 		cout << setw(40) << "Hits: " << setw(10) << mHits << endl;
+		cout << setw(40) << "Collisions: " << setw(10) << mCollision << endl;
 		cout << setw(40) << "Misses due to Overlap: " << setw(10) << mMissesBecauseOverlap << endl;
 		cout << setw(40) << "Misses due to Zero hash: " << setw(10) << mMissesBecauseZero << endl;
 		cout << setw(40) << "Misses due to insufficient depth: " << setw(10) << mMissesBecauseDepth << endl;
@@ -131,6 +186,7 @@ private:
 	uint64_t mEntries;
 	uint64_t mMisses;
 	uint64_t mHits;
+	uint64_t mCollision;
 	uint64_t mMissesBecauseOverlap;
 	uint64_t mMissesBecauseZero;
 	uint64_t mMissesBecauseDepth;
