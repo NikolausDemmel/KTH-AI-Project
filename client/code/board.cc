@@ -31,6 +31,7 @@ Board::Board(const char* fileName, unsigned int boardNumber) {
 	parseBoardFromFile(fileName, boardNumber);
 }
 
+
 Board::~Board() {
 	// FIXME
 }
