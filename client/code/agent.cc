@@ -110,63 +110,76 @@ string Agent::submitSolution(){
 
 void Agent::findSolution()
 {
-
 	SearchResult result;
-	int depth = 1;
+	uint depth = 1;
 
-//	while(!solutionMoves.empty())
-//	solutionMoves.pop();
 	solutionMoves.clear();
 
-		do {
+	do {
 #ifdef INFO
-			cout << "Trying depth " << depth << endl;
+		cout << "Trying depth " << depth << endl;
 #endif
-			result = depthLimitedSearch(depth++);
+		result = depthLimitedSearch(depth++);
 #ifdef INFO
-            mHashTable.printStatistics();
+		mHashTable.printStatistics();
 #endif
-            // FIXME:
-            // mHashTable.clear();
-		} while(result==CutOff);
-		myBoard->restoreInitialPlayerPos();
-		if (result==Failure) throw "board can't be solved.";
-		else return;
+		// FIXME:
+		// mHashTable.clear();
+	} while (result == CutOff);
+
+	mBoard->restoreInitialPlayerIndex();
+
+	if (result==Failure)
+		throw "board can't be solved."; // Fail more grance-fully
+	else
+		return;
 
 #ifdef INFO
-		cout << "Result of search was " << SearchResultToString(result) << endl;
+	cout << "Result of search was " << cSearchResultNames[result] << endl;
 #endif
 
 }
 
-SearchResult Agent::depthLimitedSearch(int depth)
+SearchResult Agent::depthLimitedSearch(uint depth)
 {
 
-	// Base Cases
+	// 1. Base Cases
 	if (depth == 0) return CutOff;
-	if (myBoard->isSolved()) return Solution;
+	if (mBoard->isSolved()) return Solution;
 
-	if (mHashTable.lookup(myBoard->getHash(), depth))
+	// 2. Hashtable lookup
+	if (mHashTable.lookup(mBoard->getHash(), depth))
 		return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 
-	bool cutOff_Occured = false;
-	vector<Move> possibleMoves;
+	// 3. Deadlock detection
+	// TODO: Deadlock detection should kick in here:
+
+
+
+	// 4. Search one step deeper
+	bool cutoff_occured = false;
+	vector<Move> possible_moves;
 	SearchResult result;
-	myBoard->GenerateMoves(possibleMoves);
-	for(vector<Move>::iterator it = possibleMoves.begin(); it != possibleMoves.end(); ++it) {
-		myBoard->ApplyMove(*it);
+
+	mBoard->generateMoves(possible_moves);
+
+	foreach ( const Move &move, possible_moves) {
+
+		mBoard->applyMove(move);
 //		myBoard->PrintBoard();
 		result = depthLimitedSearch(depth-1);
-		myBoard->UndoMove(*it);
+		mBoard->undoMove(move);
 
-		if(result==CutOff) cutOff_Occured = true;
-		else if (result!=Failure) {
-			//solutionMoves.push(*it); //NOTE using a stack not a list
-			solutionMoves.push_front(*it);
+		if (result==CutOff) {
+			cutoff_occured = true;
+		} else if (result != Failure) {
+			solutionMoves.push_front(move);
 			return Solution;
-		}	//else : solution not found, try next node :/
+		}
 	}
-	if(cutOff_Occured) return CutOff;
+
+	// 5. assess outcome
+	if (cutoff_occured) return CutOff;
 	else return Failure;
 
 }

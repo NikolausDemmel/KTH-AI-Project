@@ -19,13 +19,13 @@ namespace mnp {
 struct TileNode {
 
 	TileNode():
-		distance(numeric_limits<int>::max()),
+		distance(numeric_limits<uint>::max()),
 		visited(false),
 		parent(Up)
 	{
 	}
 
-	int distance;
+	uint distance;
 	bool visited;
 	Dir parent;
 

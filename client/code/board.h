@@ -9,6 +9,7 @@
 #define BOARD_H_
 
 #include "tile.h"
+#include "tilenode.h"
 #include "common.h"
 #include "move.h"
 #include <string>
@@ -34,26 +35,27 @@ namespace mnp {
 class Board
 {
 public:
-	Board(const char* board) {
-		ParseBoard(board);
-	}
+	////////////////////////////////////////////////////////////////////////////////
+	// CONSTRUCTION
+	////////////////////////////////////////////////////////////////////////////////
 
-	Board(string board) {
-		ParseBoard(board.c_str());
-	}
-
+	Board(string board);
+	Board(const char* board);
 	Board(const char* fileName, unsigned int boardNumber);
+	~Board();
 
-	~Board() {
-	}
 
-	// used for testing
-	void printBoard(uint8_t printFlags = 0) const {
-		cout << boardToString(printFlags) << endl;
-	}
+	////////////////////////////////////////////////////////////////////////////////
+	// SEARCH
+	////////////////////////////////////////////////////////////////////////////////
 
-	// convert to board to a string
-	string boardToString(uint8_t printFlags = 0, vector<TileNode> *nodes = 0) const;
+public:
+	bool isSolved();
+	void restoreInitialPlayerIndex();
+	void setPlayerIndex(index_t player);
+
+private: // FIXME
+
 
 	// change the board according to the move
 	void applyMove(const Move &move);
@@ -61,35 +63,44 @@ public:
 	// undo the move, change the board again
 	void undoMove(const Move &move);
 
-	// calls VisitTile
-	// debugging
+
+
+	// calls visitTile
 	void generateMoves(vector<Move> &moves);
 
-	bool isSolved();
+	// visit the neighboring tiles and set the visitflag
+	// if there is a neighboring box, add the tilepos + direction of the box to the vector of moves
+	void visitTile(index_t tileIndex, vector<Move> &moves);
 
-	bool doAction(Dir toWhere);
 
-	void undoAction(Dir fromWhere,bool unPush);
+
+	uint countMissingGoals() const;
+
+	// FIXME: which flags do we need
+	// reset the visit- and extra-flags
+	void clearFlags();
+
+
+	////////////////////////////////////////////////////////////////////////////////
+	// GAME SIMULATION
+	////////////////////////////////////////////////////////////////////////////////
+public: // FIXME
 
 	void simulateActions(const char* actions);
 
-	void restoreInitialPlayerPos() {
-		setPlayerPos(mInitialPlayerPos);
-	}
+private: // FIXME
+	bool doAction(Dir toWhere);
+
+	void undoAction(Dir fromWhere, bool unPush);
+
+
+	////////////////////////////////////////////////////////////////////////////////
+	// INDEX CALCULATIONS
+	////////////////////////////////////////////////////////////////////////////////
 
 private:
-	// visit the neighboring tiles and set the visitflag
-	// if there is a neighboring box, add the tilepos + direction of the box to the vector of moves
-	void VisitTile(int tileIndex, vector<Move> &moves);
 
-	// reset the visit- and extra-flags
-	void ClearFlags();
-
-	int countMissingGoals() const;
-
-	void ParseBoard(const char* board);
-
-	static int calculateIndexBits(int size);
+	static uint calculateIndexBits(uint size);
 
 public:
 
@@ -136,14 +147,18 @@ public:
 		}
 	}
 
-//	size_t size() const {
-//		return mSize;
-//	}
-//
-//	Pos getPlayerPos() const {
-//		return mPlayerPos;
-//	}
-//
+
+	// FIXME: do we need those??
+
+	uint size() const {
+		return mSize;
+	}
+
+	index_t getPlayerIndex() const {
+		return mPlayerIndex;
+	}
+
+	// FIXME: do we need those??
 //	uint8_t getTile(int x, int y) const {
 //		return mBoard[TileIndex(x,y)];
 //	}
@@ -152,56 +167,59 @@ public:
 //		return mBoard[index];
 //	}
 
+
+
+private:
+
+//	void SetTile(int x, int y, uint8_t value) {
+//		mBoard[TileIndex(x, y)] = value;
+//	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	// PARSING AND PRINTING
+	////////////////////////////////////////////////////////////////////////////////
+public:
+
+	void printBoard(uint8_t printFlags = 0) const;
+
+private:
+	string boardToString(uint8_t printFlags = 0, const vector<TileNode> * const nodes = 0) const;
+
+	void parseBoard(const char* board);
+
+	void parseBoardFromFile(const char *fileName, size_t boardNumber);
+
+	// tile from character ignoring the player and the boxes
+	static Tile parseTile(char c);
+
+	// character from tile ignoring the player, used e.g. for printing the board
+	static char tileCharacter(const Tile &t, const TileNode * const node);
+
+	// FlagString returns the string-code for the color of the tile
+	// set colour if tile is visited, ...
+	static const char* flagString(const Tile &tile, uint8_t flags);
+
+	// end of the color-code
+	static const char* endFlagString(uint8_t flags);
+
+	////////////////////////////////////////////////////////////////////////////////
+	// HASH-VALUE
+	////////////////////////////////////////////////////////////////////////////////
+
+public:
+
 	uint64_t getHash() const {
 		return mHashValue;
 	}
 
-//	uint64_t getHash2() {
-//		return computeHash2Value();
-//	}
-
 private:
-
-	inline Pos TileIndexToPos(int index) {
-		return Pos(index%mWidth, index/mWidth);
-	}
-
-	inline void setPlayerPos(Pos pos) {
-		mPlayerPos = pos;
-		mPlayerIndex = TileIndex(pos);
-	}
-
-	void SetTile(int x, int y, uint8_t value) {
-		mBoard[TileIndex(x, y)] = value;
-	}
-
-	// returns the type of the tile
-	static uint8_t ParseTile(char c);
-
-
-	// returns the character of the tile, used e.g. for printing the board
-	static char TileCharacter(uint8_t t, TileNode *node);
-
-
-
-	// FlagString returns the string-code for the color of the tile
-	// set colour if tile is visited, ...
-	static const char* FlagString(uint8_t tile, uint8_t flags);
-
-	// end of the color-code
-	static const char* EndFlagString(uint8_t flags);
-
-
-	/**
-	 * HASH
-	 */
 
 	// create the array of zobrist numbers with random numbers;
 	void initializeZobrist();
 
 	// get the ZobristNumber of the tile at a certain index.
-	uint64_t getZobristBox(int tileIndex) const;
-	uint64_t getZobristPlayer(int tileIndex) const;
+	uint64_t getZobristBox(index_t tile) const;
+	uint64_t getZobristPlayer(index_t tile) const;
 
 	// xor the number to the hash value
 	void updateHash(uint64_t zobristNumber);
@@ -212,28 +230,33 @@ private:
 	// computes an alternative hash value from scratch
 	uint64_t computeHash2Value();
 
-	/**
-	 * GROUPINFO
-	 */
+	////////////////////////////////////////////////////////////////////////////////
+	// GROUPINFO
+	////////////////////////////////////////////////////////////////////////////////
+
+public:
 
 	bool isReachable(index_t tile) {
 		return sameGroup(mPlayerIndex, tile);
 	}
 
-	bool sameGroup(index_t a, index b) {
+	bool sameGroup(index_t a, index_t b) {
 		// TODO
 	}
 
-	void joinGroup(index a, index b) {
+	void joinGroup(index_t a, index_t b) {
 		// set parent of representative of b to representative of a
 		// TODO
 	}
 
-	void splitGroup(index a, index b) {
+	void splitGroup(index_t a, index_t b) {
 		// TODO
 	}
 
 
+	////////////////////////////////////////////////////////////////////////////////
+	// DATA
+	////////////////////////////////////////////////////////////////////////////////
 
 private:
 	// TODO: store list of possible moves here or in agent class ??
@@ -259,13 +282,11 @@ private:
 	// example so far, maybe just scrap the whole idea. (Its still interesting
 	// from a theoretical point of view)
 
-	index_t mSize; // mWidth * mHeight
-	size_t mWidth;
-	size_t mHeight;
-	size_t mIndexBits; // How many bits do we need to store an
+	uint mSize; // mWidth * mHeight
+	uint mWidth;
+	uint mHeight;
+	uint mIndexBits; // How many bits do we need to store an
                        // index. esssentially ceil(log2(size)).
-	size_t mNumberOfBoxes; // How many boxes are on the board. Obviously
-                           // invariant over one particular game.
 	index_t mInitialPlayerIndex; // What was the initial player position. We
                                  // need this to be able to undo the first
                                  // move.
@@ -288,10 +309,11 @@ private:
 	// modified. FIXME: actually maybe never copy; inverstigate...
 	index_t *mGroupInfo; // TODO: better name? TODO: use uint8_t ? TODO:
                          // evaluate: save group size ?
+	// FIXME: destructor
 
 	// How many goals are lacking a box. If this reaches 0 we have solved the
 	// board.
-	size_t mMissingGoals;
+	uint mMissingGoals;
 
 	// The current hash value and the lists of random numbers for generating /
 	// updated this value.

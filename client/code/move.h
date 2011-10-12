@@ -34,8 +34,8 @@ public:
 		return mDir;
 	}
 
+	index_t getNextIndex(const Board *board) const;
 	index_t getPlayerIndex(const Board *board) const;
-
 
 	string toString(const Board *board = 0) const;
 

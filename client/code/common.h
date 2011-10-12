@@ -32,12 +32,8 @@ using namespace std;
 
 namespace mnp {
 
-
-const char* dirToString(Dir dir);
-const char* searchResultToString(SearchResult result);
 Dir invertDirection(Dir dir);
 char directionToAction(Dir dir);
-
 
 uint64_t rand64();
 

@@ -16,29 +16,74 @@ namespace mnp {
 
 struct Tile {
 
+	static const int NoBox = -1;
+
 	enum StaticType {
-		TileWall		= 1 << 1,
-		TileGoal		= 1 << 2,
+		Empty 		= 0,
+		Wall		= 1 << 0,
+		Goal		= 1 << 1,
 	};
+
+	enum Flags {
+		VisitedFlag		= 1 << 0,
+		ExtraFlag		= 1 << 1,
+	};
+
 
 
 	int box; // -1 or index in box-array
 	uint8_t static_type; // Logic combination of StaticType flags. Not all combinations are valid.
+	uint8_t flags;
 
-	inline bool isBox() {
+
+
+	Tile(uint8_t static_type_ = Empty, int box_ = NoBox, uint8_t flags_ = 0):
+		static_type(static_type_),
+		box(box_),
+		flags(flags_)
+	{
+	}
+
+	inline bool flagsSet(uint8_t mask) const {
+		return (flags & mask) == mask;
+	}
+
+	inline void setFlags(uint8_t mask) {
+		flags |= mask;
+	}
+
+	inline void unsetFlags(uint8_t mask) {
+		flags &= ~mask;
+	}
+
+	inline void clearFlags() {
+		flags = 0;
+	}
+
+	inline bool isBox() const {
 		return box >= 0;
 	}
 
-	inline bool isWall() {
-		return static_type & TileWall;
+	inline bool isWall() const {
+		return static_type & Wall;
 	}
 
-	inline bool isGoal() {
-		return static_type & TileGoal;
+	inline bool isGoal() const {
+		return static_type & Goal;
 	}
 
-	inline bool isFree() {
+	inline bool isFree() const {
 		return !isBox() && !isWall();
+	}
+
+	inline int removeBox() {
+		int tmp = box;
+		box = NoBox;
+		return tmp;
+	}
+
+	inline void setBox(int box_) {
+		box = box_;
 	}
 
 	// The original idea of storing pointers to neighbours and the board and

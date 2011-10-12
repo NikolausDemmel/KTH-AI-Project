@@ -14,35 +14,6 @@
 
 namespace mnp {
 
-const char* dirToString(Dir dir)
-{
-	switch(dir) {
-	case Up:
-		return "Up";
-	case Down:
-		return "Down";
-	case Left:
-		return "Left";
-	case Right:
-		return "Right";
-	default:
-		throw "Unreachable!";
-	}
-}
-
-const char* searchResultToString(SearchResult result)
-{
-	switch(result) {
-	case Solution:
-		return "Solution";
-	case Failure:
-		return "Failure";
-	case CutOff:
-		return "CutOff";
-	default:
-		throw "Unreachable!";
-	}
-}
 
 Dir invertDirection(Dir dir) {
 	switch(dir) {
@@ -71,8 +42,6 @@ char directionToAction(Dir dir) {
 }
 
 struct Rand64 {
-
-	// FIXME: seed?
 
 	Rand64() :
 		rd(),

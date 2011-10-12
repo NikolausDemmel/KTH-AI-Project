@@ -12,7 +12,6 @@
 #include "board.h"
 #include "hash_table.h"
 #include <list>
-//#include <stack>
 
 using namespace std;
 
@@ -20,16 +19,13 @@ namespace mnp {
 
 class Agent{
 public:
-	// TODO: this does the
-	// search with iterative deepening or breadth first or something until it finds a solution
-	// and the returns the solution string to the client who sends it to the server.
 
 	Agent():
 		mHashTable(26) // 2^26 entries if 64 bit values should be 512 MB
 	{
 	}
 
-	//~Agent();
+	//~Agent(); // FIXME
 
 	/*	void search(Board board);
 	 *
@@ -42,35 +38,29 @@ public:
 	 *	string submitSolution();
 	 */
 
-	void setBoard(Board *aBoard);
-	//{myBoard = aBoard;}
+	void setBoard(Board *board);
 
 	void findSolution();
 
-	SearchResult depthLimitedSearch(int depth);
+	SearchResult depthLimitedSearch(uint depth);
 
 	string executeSolution();
 
 	// TODO: find another class where we can put this (maybe Board)
-	static bool shortestPathSearch(string &actions, const Board &board, Pos start, Pos end);
-	static bool actionsForMove(string &actions, const Board &board, Move &move);
+	static bool shortestPathSearch(string &actions, const Board &board, index_t start, index_t end);
+	static bool actionsForMove(string &actions, const Board &board, const Move &move);
 
 private:
 
-	Board *myBoard;
+	Board *mBoard;
 
 	HashTable mHashTable;
-public:
-	//stack<Move> solutionMoves;
+
+public: // FIXME: should be private
 
 	list<Move> solutionMoves;
-	//list<Move>::iterator solutionItr;
-	// Use this for list
+};
 
-
-}; // class
-
-}; // namespace
-
+};
 
 #endif /* AGENT_H_ */

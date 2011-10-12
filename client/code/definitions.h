@@ -37,7 +37,8 @@ namespace mnp {
 ////////////////////////////////////////////////////////////////////////////////
 typedef unsigned int coord_t;
 typedef unsigned int index_t;
-typedef unsigned int size_t;
+typedef unsigned int uint;
+typedef const char * cstring_t;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,20 +46,25 @@ typedef unsigned int size_t;
 ////////////////////////////////////////////////////////////////////////////////
 enum Dir {
 	Up = 0,
-	Left = 1,
-	Down = 2,
-	Right = 3
+	Left,
+	Down,
+	Right
 };
 
 enum SearchResult {
-	Solution,
+	Solution = 0,
 	Failure,
 	CutOff
 };
 
+const Dir cDirs[] = { Up, Left, Down, Right };
+const cstring_t cDirNames[] = { "Up", "Left", "Down", "Right" };
+
+const SearchResult cSearchResults[] = { Solution, Failure, CutOff };
+const cstring_t cSearchResultNames[] = { "Solution", "Failure", "CutOff" };
+
 
 }
-
 
 
 #endif /* DEFINITIONS_H_ */
