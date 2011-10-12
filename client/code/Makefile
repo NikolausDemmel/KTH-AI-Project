@@ -12,7 +12,7 @@ all: build
 build: client
 
 client: *.cc *.h
-	g++-mp-4.5 --std=gnu++0x *.cc $(CXXFLAGS) -g -Wall -o client
+	g++-4.5 --std=gnu++0x *.cc $(CXXFLAGS) -g -Wall -o client
 
 run: client
 	./client $(SERVER) $(PORT) $(BOARD)
@@ -20,7 +20,7 @@ run: client
 build-opt: client-opt
 
 client-opt: *.cc *.h
-	g++-mp-4.5 --std=gnu++0x *.cc $(CXXFLAGS) -O3 -DNDEBUG -o client-opt
+	g++-4.5 --std=gnu++0x *.cc $(CXXFLAGS) -O3 -DNDEBUG -o client-opt
 
 run-opt: client-opt
 	./client-opt $(SERVER) $(PORT) $(BOARD)

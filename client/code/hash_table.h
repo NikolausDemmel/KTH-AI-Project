@@ -119,15 +119,13 @@ public:
 #endif
 		int64_t new_index = index;
 
-		for (int i = 1;; i++) {
+		for (uint i = 1;; i++) {
 			if (i > 10) { //hashtable is quite full
 				return false;
 			}
 			//cout << "i: " << i << endl;
-			new_index = new_index + i*i; //TODO: hash +c*i² +c mod x
+			new_index = (new_index + i*i) % mSize; //TODO: hash +c*i² +c mod x
 			//cout << "neuer Index: " << new_index << endl;
-			if (new_index > mSize) //TODO: end of hashtable
-				return true;
 			if (mTable[new_index] == 0) {
 #ifdef INFO
 				++mHits;
