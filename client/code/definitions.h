@@ -19,7 +19,7 @@
 // #define NDEBUG // < define this to disable assertions etc. Only use to get the last bit of speed.
 #define DEBUG
 #define INFO
-#define VERBOSE_SHORTEST_PATH
+// #define VERBOSE_SHORTEST_PATH
 // #define VERBOSE_GENERATE_MOVES
 
 

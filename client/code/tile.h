@@ -21,23 +21,23 @@ struct Tile {
 	enum StaticType {
 		Empty 		= 0,
 		Wall		= 1 << 0,
-		Goal		= 1 << 1,
+		Goal		= 1 << 1
 	};
 
 	enum Flags {
 		VisitedFlag		= 1 << 0,
-		ExtraFlag		= 1 << 1,
+		ExtraFlag		= 1 << 1
 	};
 
 
 
-	int box; // -1 or index in box-array
 	uint8_t static_type; // Logic combination of StaticType flags. Not all combinations are valid.
+	int box; // -1 or index in box-array
 	uint8_t flags;
 
 
 
-	Tile(uint8_t static_type_ = Empty, int box_ = NoBox, uint8_t flags_ = 0):
+	explicit Tile(uint8_t static_type_ = Empty, int box_ = NoBox, uint8_t flags_ = 0):
 		static_type(static_type_),
 		box(box_),
 		flags(flags_)

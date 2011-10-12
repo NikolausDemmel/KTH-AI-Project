@@ -46,10 +46,6 @@ public:
 
 	string executeSolution();
 
-	// TODO: find another class where we can put this (maybe Board)
-	static bool shortestPathSearch(string &actions, const Board &board, index_t start, index_t end);
-	static bool actionsForMove(string &actions, const Board &board, const Move &move);
-
 private:
 
 	Board *mBoard;
@@ -58,7 +54,7 @@ private:
 
 public: // FIXME: should be private
 
-	list<Move> solutionMoves;
+	list<Move> mSolutionMoves;
 };
 
 };

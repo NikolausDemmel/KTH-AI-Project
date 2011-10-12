@@ -5,7 +5,10 @@
  *      Author: astridrupp
  */
 
-
+#include <algorithm>
+#include <sstream>
+#include <queue>
+#include <vector>
 #include "board.h"
 
 namespace mnp {
@@ -52,8 +55,8 @@ void Board::parseBoardFromFile(const char *fileName, size_t boardNumber) {
 }
 
 
-void Board::printBoard(uint8_t printFlags) const {
-	cout << boardToString(printFlags) << endl;
+void Board::printBoard(uint8_t print_flags) const {
+	cout << boardToString(print_flags) << endl;
 }
 
 //creates a String that can be printed
@@ -61,7 +64,7 @@ string Board::boardToString(uint8_t printFlags, const vector<TileNode> * const n
 {
 	stringstream board;
 	for(int y = mHeight-1; y >= 0; --y) {
-		for (int x = 0; x < mWidth; x++) {
+		for (uint x = 0; x < mWidth; ++x) {
 			index_t index = tileIndex(x, y);
 			board << flagString(mTiles[index], printFlags);
 			if (mPlayerIndex == index)
@@ -133,87 +136,85 @@ void Board::undoMove(const Move &move) {
 //	}
 }
 
-// TODO: refactor
-//bool Board::doAction(Dir toWhere) {
-//	Pos next(mPlayerPos,toWhere);
-//
-//	if( mBoard[TileIndex(next)] & TileWall) {
-//		throw "banging in the wall";
-//	} else if (mBoard[TileIndex(next)] & TileBox) {
-//		cout<<"pushAt-"<<mPlayerPos.ToString()<<DirToString(toWhere)<<endl;
-//		Move tMove(Pos(mPlayerPos,toWhere),toWhere);
-//		ApplyMove(tMove);
-//		return true;
-//	} else {
-//		setPlayerPos(next);
-//		return false;
-//	}
-//}
-//
-//void Board::undoAction(Dir fromWhere,bool unPush){
-//	Pos prev(mPlayerPos,fromWhere,-1);
-//	if(unPush) {
-//		Move tMove(mPlayerPos,fromWhere);
-//		UndoMove(tMove);
-//	} else {
-//		if(mBoard[TileIndex(prev)] & (TileWall|TileBox)) throw "banging back";
-//		else setPlayerPos(prev);
-//	}
-//}
-//
-//void Board::simulateActions(const char* actions){
-//	bool pushed=false;
-//		switch(*actions) {
-//		case ' ':
-//			return simulateActions(++actions);
-//		case 'U':	case 'u':	case '0':
-//			cout<<"up"<<endl;
-//			pushed = doAction(Up);
-//			PrintBoard();
-//#ifdef INFO
-//			cin.get();
-//#endif
-//			simulateActions(++actions);
-//			undoAction(Up,pushed);
-//			return;
-//		case 'D':	case 'd':	case '1':
-//			cout<<"down"<<endl;
-//			pushed = doAction(Down);
-//			PrintBoard();
-//#ifdef INFO
-//			cin.get();
-//#endif
-//			simulateActions(++actions);
-//			undoAction(Down,pushed);
-//			return;
-//		case 'L':	case 'l':	case '2':
-//			cout<<"left"<<endl;
-//			pushed = doAction(Left);
-//			PrintBoard();
-//#ifdef INFO
-//			cin.get();
-//#endif
-//			simulateActions(++actions);
-//			undoAction(Left,pushed);
-//			return;
-//		case 'R':	case 'r':	case '3':
-//			cout<<"right"<<endl;
-//			pushed = doAction(Right);
-//			PrintBoard();
-//#ifdef INFO
-//			cin.get();
-//#endif
-//			simulateActions(++actions);
-//			undoAction(Right,pushed);
-//			return;
-//		case '\0':
-//			return;
-//		default:
-//			cout<<"invalid character in simulate actions: \'\\"<<(int)*actions<<"\'\n";
-//			return;
-//		}
-//
-//	}
+bool Board::doAction(Dir to) {
+	index_t next = tileIndex(mPlayerIndex, to);
+
+	if( mTiles[next].isWall() ) {
+		throw "[board] banging head in the wall :-/";
+	} else if (mTiles[next].isBox() ) {
+		cout << "push at " << indexToPos(mPlayerIndex).toString() << cDirs[to] << endl;
+		Move move(next, to);
+		applyMove(move);
+		return true;
+	} else {
+		setPlayerIndex(next);
+		return false;
+	}
+}
+
+void Board::undoAction(Dir from, bool unpush){
+	index_t prev = tileIndex(mPlayerIndex, from, -1);
+	if (unpush) {
+		Move move(mPlayerIndex, from);
+		undoMove(move);
+	} else {
+		if (!mTiles[prev].isFree()) throw "[board] banging back in the wall :-/";
+		else setPlayerIndex(prev);
+	}
+}
+
+void Board::simulateActions(const char* actions){
+	bool pushed = false;
+	switch(*actions) {
+	case ' ':
+		return simulateActions(++actions);
+	case 'U':	case 'u':	case '0':
+		cout << "up" << endl;
+		pushed = doAction(Up);
+		printBoard();
+#ifdef INFO
+		cin.get();
+#endif
+		simulateActions(++actions);
+		undoAction(Up, pushed);
+		return;
+	case 'D':	case 'd':	case '1':
+		cout << "down" << endl;
+		pushed = doAction(Down);
+		printBoard();
+#ifdef INFO
+		cin.get();
+#endif
+		simulateActions(++actions);
+		undoAction(Down, pushed);
+		return;
+	case 'L':	case 'l':	case '2':
+		cout << "left" << endl;
+		pushed = doAction(Left);
+		printBoard();
+#ifdef INFO
+		cin.get();
+#endif
+		simulateActions(++actions);
+		undoAction(Left, pushed);
+		return;
+	case 'R':	case 'r':	case '3':
+		cout << "right" << endl;
+		pushed = doAction(Right);
+		printBoard();
+#ifdef INFO
+		cin.get();
+#endif
+		simulateActions(++actions);
+		undoAction(Right, pushed);
+		return;
+	case '\0':
+		return;
+	default:
+		cout << "[board] invalid character in simulate actions: \'\\" << (int)*actions << "\'\n";
+		return;
+	}
+}
 
 // FIXME: would it not be quicker to incrementally update all the reachability information
 // also maybe store the boxes as a list of positions
@@ -279,7 +280,7 @@ void Board::parseBoard(const char* board) {
 	mTiles.resize(mSize);
 
 	if (mSize == 0) {
-		throw "board of size 0 ???";
+		throw "[board] board of size 0 ???";
 	}
 
 	uint y = mHeight - 1;
@@ -297,7 +298,7 @@ void Board::parseBoard(const char* board) {
 			index_t tile = tileIndex(x, y);
 			mTiles[tile] = parseTile(board[i]);
 			if (board[i] == '$' || board[i] == '*') {
-				mTiles[tile] = mBoxes.size(); // set the number of the box to the index on the mBoxes list
+				mTiles[tile].box = mBoxes.size(); // set the number of the box to the index on the mBoxes list
 				mBoxes.push_back(tile);
 			}
 			if (board[i] == '@' || board[i] == '+') {
@@ -384,7 +385,7 @@ const char* Board::endFlagString(uint8_t flags) {
 uint Board::countMissingGoals() const {
 	uint count = 0;
 	for(index_t i=0; i < mSize; ++i)
-		if( (mTiles[i].isBox()) && !(mTiles[i].isGoal()) )
+		if( (mTiles[i].isGoal()) && !(mTiles[i].isBox()) )
 			++count;
 	return count;
 }
@@ -446,6 +447,71 @@ void Board::setPlayerIndex(index_t player) {
 void Board::restoreInitialPlayerIndex() {
 	setPlayerIndex(mInitialPlayerIndex);
 }
+
+
+
+bool Board::shortestPathSearch(string &actions, index_t start, index_t end) const
+{
+	// This uses dijkstra to search for the end
+	// Since we have this very special layout we don't ever need to update a node.
+
+	stringstream ss;
+
+	vector<TileNode> nodes(mSize);
+
+	nodes[start].distance = 0;
+	nodes[start].visited = true;
+
+	TileNode::IndexComparator comparator(&nodes);
+	priority_queue<uint, vector<uint>, TileNode::IndexComparator> pq(comparator);
+	pq.push(start);
+
+	while(!pq.empty()) {
+		index_t curr = pq.top();
+		pq.pop();
+		if (curr == end) {
+			// Found the goal, now back up and record the way
+			while (curr != start) {
+				ss << directionToAction(invertDirection(nodes[curr].parent));
+				curr = tileIndex(curr, nodes[curr].parent);
+			}
+			actions = ss.str();
+			reverse(actions.begin(), actions.end());
+
+#ifdef VERBOSE_SHORTEST_PATH
+			cout << "Shortest path search result: " << endl;
+			cout << boardToString(0, &nodes) << endl;
+#endif
+
+			return true;
+		}
+
+		// not found the goal yet, so search further
+		foreach (Dir dir, cDirs) {
+			index_t next = tileIndex(curr, dir);
+			if (!nodes[next].visited && mTiles[next].isFree()) {
+				nodes[next].distance = nodes[curr].distance + 1;
+				nodes[next].parent = invertDirection(dir);
+				nodes[next].visited = true;
+				pq.push(next);
+			}
+		}
+	}
+
+
+	return false;
+}
+
+bool Board::actionsForMove(string &actions, const Move &move) const
+{
+	if ( shortestPathSearch(actions, getPlayerIndex(), move.getPlayerIndex(this)) ) {
+		actions += directionToAction(move.getMoveDir());
+		return true;
+	}
+	return false;
+}
+
+
 
 
 };

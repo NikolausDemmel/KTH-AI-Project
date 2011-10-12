@@ -19,8 +19,8 @@ class Move
 {
 public:
 	Move(index_t box_index, Dir dir):
-		mDir(dir),
-		mBoxIndex(box_index)
+		mBoxIndex(box_index),
+		mDir(dir)
 	{
 	}
 

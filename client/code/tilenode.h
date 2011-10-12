@@ -10,6 +10,7 @@
 
 
 #include <limits>
+#include <vector>
 #include "definitions.h"
 
 
@@ -28,6 +29,23 @@ struct TileNode {
 	uint distance;
 	bool visited;
 	Dir parent;
+
+
+	struct IndexComparator {
+
+		IndexComparator(const vector<TileNode> *nodes):
+			mNodes(nodes)
+		{
+		}
+
+		bool operator()(const uint &a, const uint &b) {
+			return mNodes->at(a).distance > mNodes->at(b).distance;
+		}
+
+	private:
+		const vector<TileNode> *mNodes;
+
+	};
 
 };
 

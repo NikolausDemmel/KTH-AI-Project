@@ -155,9 +155,9 @@ void CSocket::WriteLine(const std::string &pLine)
     std::string lLine=pLine;
     if(lLine.empty()||lLine[lLine.size()-1]!='\n') lLine+='\n';
 
-    int lWritten=0;
+    uint lWritten=0;
     
-    while(lWritten<lLine.size())
+    while( lWritten < lLine.size())
     {
 #ifdef _WIN32
         SetNonBlocking(mFD,1);

@@ -5,9 +5,6 @@
  *      Author: astridrupp
  */
 
-#include <limits>
-#include <algorithm>
-#include <queue>
 #include <sstream>
 #include "agent.h"
 
@@ -113,30 +110,34 @@ void Agent::findSolution()
 	SearchResult result;
 	uint depth = 1;
 
-	solutionMoves.clear();
+	mSolutionMoves.clear();
 
 	do {
 #ifdef INFO
-		cout << "Trying depth " << depth << endl;
+		cout << "[agent] trying depth " << depth << endl;
+		cout << "[agent] # of boxes " << mBoard->mBoxes.size() << endl;
+		cout << "[agent] log size of board " << mBoard->mIndexBits << endl;
 #endif
 		result = depthLimitedSearch(depth++);
 #ifdef INFO
+		cout << "[agent] search result for this depth: " << cSearchResultNames[result] << endl;
 		mHashTable.printStatistics();
 #endif
 		// FIXME:
 		// mHashTable.clear();
+		mHashTable.clearStatistic();
 	} while (result == CutOff);
 
 	mBoard->restoreInitialPlayerIndex();
 
+#ifdef INFO
+	cout << "[agent] result of search was " << cSearchResultNames[result] << endl;
+#endif
+
 	if (result==Failure)
-		throw "board can't be solved."; // Fail more grance-fully
+		throw "[agent] board can't be solved."; // Fail more grance-fully
 	else
 		return;
-
-#ifdef INFO
-	cout << "Result of search was " << cSearchResultNames[result] << endl;
-#endif
 
 }
 
@@ -173,7 +174,7 @@ SearchResult Agent::depthLimitedSearch(uint depth)
 		if (result==CutOff) {
 			cutoff_occured = true;
 		} else if (result != Failure) {
-			solutionMoves.push_front(move);
+			mSolutionMoves.push_front(move);
 			return Solution;
 		}
 	}
@@ -184,86 +185,8 @@ SearchResult Agent::depthLimitedSearch(uint depth)
 
 }
 
-void Agent::setBoard(Board *aBoard) {
-	myBoard = aBoard;
-}
-
-struct TileIndexComparator {
-
-	TileIndexComparator(const vector<TileNode> *nodes):
-		mNodes(nodes)
-	{
-	}
-
-	bool operator()(const int &a, const int &b) {
-		return mNodes->at(a).distance > mNodes->at(b).distance;
-	}
-
-private:
-	const vector<TileNode> *mNodes;
-
-};
-
-bool Agent::shortestPathSearch(string &actions, const Board &board, Pos start, Pos end)
-{
-	// This uses dijkstra to search for the end
-	// Since we have this very special layout we don't ever need to update a node.
-
-	stringstream ss;
-
-	vector<TileNode> nodes(board.size());
-
-	int startIndex = board.TileIndex(start);
-	int endIndex = board.TileIndex(end);
-
-	nodes[startIndex].distance = 0;
-	nodes[startIndex].visited = true;
-
-	TileIndexComparator comparator(&nodes);
-	priority_queue<int, vector<int>, TileIndexComparator> pq(comparator);
-	pq.push(startIndex);
-
-	while(!pq.empty()) {
-		int curr = pq.top();
-		pq.pop();
-		if(curr == endIndex) {
-			while(curr != startIndex) {
-				ss << directionToAction(invertDirection(nodes[curr].parent));
-				curr = board.TileIndex(curr, nodes[curr].parent);
-			}
-			actions = ss.str();
-			reverse(actions.begin(), actions.end());
-
-#ifdef VERBOSE_SHORTEST_PATH
-			cout << "Shortest path search result: " << endl;
-			cout << board.BoardToString(0, &nodes) << endl;
-#endif
-
-			return true;
-		}
-		for (int i = 0; i < 4; ++i) {
-			Dir dir = static_cast<Dir>(i);
-			int next = board.TileIndex(curr, dir);
-			if (!nodes[next].visited && isTileFree(board.getTile(next))) {
-				nodes[next].distance = nodes[curr].distance + 1;
-				nodes[next].parent = invertDirection(dir);
-				nodes[next].visited = true;
-				pq.push(next);
-			}
-		}
-	}
-
-
-	return false;
-}
-
-bool Agent::actionsForMove(string &actions, const Board &board, Move &move)
-{
-	if (shortestPathSearch(actions, board, board.getPlayerPos(), move.getPlayerPos())) {
-		actions += directionToAction(move.getMoveDir());
-		return true;
-	}
-	return false;
+void Agent::setBoard(Board *board) {
+	mBoard = board;
 }
 
 string Agent::executeSolution() {
@@ -275,37 +198,44 @@ string Agent::executeSolution() {
 #ifdef INFO
 	cout << "Execution Solution." << endl;
 #endif
+
 	stringstream solution;
-	list<Move>::iterator solutionItr = solutionMoves.begin();
-	for(;solutionItr!=solutionMoves.end();solutionItr++) {
-		Move move = *solutionItr;
-//	while(!solutionMoves.empty()) {
-//		Move move = solutionMoves.top();
-//		solutionMoves.pop();
+	auto move_iter = mSolutionMoves.begin();
+
+	for(; move_iter != mSolutionMoves.end(); ++move_iter) {
+		const Move &move = *move_iter;
+
 		string actions;
-		actionsForMove(actions, *myBoard, move);
+		if (! (mBoard->actionsForMove(actions, move))) {
+			throw "Invalid move sequence.";
+		}
 		solution << actions;
+
 #ifdef INFO
 		solution << " "; // use this to tell moves apart
 #endif
-		myBoard->ApplyMove(move);
+
+		mBoard->applyMove(move);
+
 #ifdef INFO
-		cout << "Applying move " << move.ToString() << endl;
-		cout << myBoard->BoardToString();
+		cout << "Applying move " << move.toString(mBoard) << endl;
+		mBoard->printBoard();
 #endif
+
 	}
+
 	// FIXME: big questions: I think we need to maintain an invariant that after anything agent does to a board, the board remains the same?
 	// I(yg) made a function simulate actions that takes in the string of solution and runs them on a board *BUT* also undoes them.
 	//
-	while(solutionItr!=solutionMoves.begin()) {
-		solutionItr--;
+	while (move_iter != mSolutionMoves.begin()) {
+		--move_iter;
 #ifdef INFO
-		cout<<"Undoing move "<<solutionItr->ToString()<<endl;
+		cout << "Undoing move " << move_iter->toString(mBoard) << endl;
 #endif
-
-		myBoard->UndoMove(*solutionItr);
+		mBoard->undoMove(*move_iter);
 	}
-	myBoard->restoreInitialPlayerPos();
+	mBoard->restoreInitialPlayerIndex();
+
 	return solution.str();
 }
 

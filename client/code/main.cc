@@ -11,11 +11,14 @@ int main(int pArgC, char* pArgs[])
 {
     if(pArgC<4)
     {
-        std::cerr << "usage: " << pArgs[0] << " host port boardnum" << std::endl;
+        std::cerr << "usage: " << pArgs[0] << " host port boardnum [mode = contest]" << std::endl;
+        std::cerr << "usage: " << pArgs[0] << " -f filename boardnum [mode = play]"  << std::endl;
         return -1;
     }
 
-    // FIXME: Should we call srand???
+//    if(string(pArgs[1]) == "-f") {
+//
+//    } else {
 
     soko::CSocket lSocket(pArgs[1],pArgs[2]);
 
@@ -40,12 +43,12 @@ int main(int pArgC, char* pArgs[])
 
     //Board myBoard("board.txt",1);
     //Board myBoard("#####\n# . #\n#   #\n#  #\n# $.#\n#@  #\n#####\n");
-    Board myBoard(strBoard);
+    Board board(strBoard);
 
-    myBoard.PrintBoard();
+    board.printBoard();
 
     Agent myAgent;
-    myAgent.setBoard(&myBoard);
+    myAgent.setBoard(&board);
     myAgent.findSolution();
 
 //
@@ -59,15 +62,15 @@ int main(int pArgC, char* pArgs[])
 //    	myAgent.solutionMoves.pop();
 //    }
 
-    myBoard.PrintBoard();
-    cout<<"execute solution"<<endl;
+    board.printBoard();
+    cout << "[main] execute solution" << endl;
     string solution = myAgent.executeSolution();
-    cout<<"string solution found!!"<<endl;
-    myBoard.PrintBoard();
+    cout << "[main] solution found" << endl;
+    board.printBoard();
 
-    myBoard.simulateActions(solution.c_str());
+    board.simulateActions(solution.c_str());
 
-    cout << "Actions: " << solution << endl;
+    cout << "[main] actions: " << solution << endl;
 
     string lMySol = solution;
 

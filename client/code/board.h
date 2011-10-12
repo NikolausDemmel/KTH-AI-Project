@@ -44,6 +44,8 @@ public:
 	Board(const char* fileName, unsigned int boardNumber);
 	~Board();
 
+	// FIXME: copy constructor and assignment operator!!
+
 
 	////////////////////////////////////////////////////////////////////////////////
 	// SEARCH
@@ -54,7 +56,6 @@ public:
 	void restoreInitialPlayerIndex();
 	void setPlayerIndex(index_t player);
 
-private: // FIXME
 
 
 	// change the board according to the move
@@ -68,6 +69,7 @@ private: // FIXME
 	// calls visitTile
 	void generateMoves(vector<Move> &moves);
 
+private: // FIXME
 	// visit the neighboring tiles and set the visitflag
 	// if there is a neighboring box, add the tilepos + direction of the box to the vector of moves
 	void visitTile(index_t tileIndex, vector<Move> &moves);
@@ -87,12 +89,15 @@ private: // FIXME
 public: // FIXME
 
 	void simulateActions(const char* actions);
+	bool actionsForMove(string &actions, const Move &move) const;
 
 private: // FIXME
 	bool doAction(Dir toWhere);
 
 	void undoAction(Dir fromWhere, bool unPush);
 
+	// TODO: find another class where we can put this (maybe Board)
+	bool shortestPathSearch(string &actions, index_t start, index_t end) const;
 
 	////////////////////////////////////////////////////////////////////////////////
 	// INDEX CALCULATIONS
@@ -241,6 +246,7 @@ public:
 	}
 
 	bool sameGroup(index_t a, index_t b) {
+		return false;
 		// TODO
 	}
 
@@ -258,7 +264,7 @@ public:
 	// DATA
 	////////////////////////////////////////////////////////////////////////////////
 
-private:
+public: // FIXME
 	// TODO: store list of possible moves here or in agent class ??
 
 

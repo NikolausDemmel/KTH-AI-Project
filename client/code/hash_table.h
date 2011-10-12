@@ -11,6 +11,7 @@
 #include "common.h"
 #include <cassert>
 #include <cstring>
+#include <iomanip>
 
 namespace mnp {
 
@@ -29,12 +30,20 @@ public:
 		clear();
 	}
 
-	void clear() {
 #ifdef INFO
+	void clearStatistic() {
 		mMisses = 0;
 		mHits = 0;
 		mMissesBecauseOverlap = 0;
 		mMissesBecauseZero = 0;
+		mMissesBecauseDepth = 0;
+	}
+#endif
+
+	void clear() {
+#ifdef INFO
+		clearStatistic();
+		mEntries = 0;
 #endif
 		memset(mTable, 0, mSize*sizeof(uint64_t));
 		memset(mDepthTable, 0, mSize*sizeof(uint8_t));
@@ -71,6 +80,7 @@ public:
 
 		if (value == 0) {
 #ifdef INFO
+			++mEntries;
 			++mMisses;
 #endif
 			mTable[index] = validation_hash;
@@ -100,11 +110,14 @@ public:
 #ifdef INFO
 	void printStatistics() {
 		cout << "Hash table statistics:" << endl;
-		cout << "Misses: " << mMisses << endl;
-		cout << "Hits: " << mHits << endl;
-		cout << "Misses due to Overlap: " << mMissesBecauseOverlap << endl;
-		cout << "Misses due to Zero hash: " << mMissesBecauseZero << endl;
-		cout << "Misses due to insufficient depth: " << mMissesBecauseDepth << endl;
+		cout << setw(40) << "Size: " << setw(10) << mSize << endl;
+		cout << setw(40) << "Entries: " << setw(10) << mEntries << endl;
+		cout << setw(40) << "Filled (in %): " << setw(10) << (100*mEntries) / mSize << endl;
+		cout << setw(40) << "Misses: " << setw(10) << mMisses << endl;
+		cout << setw(40) << "Hits: " << setw(10) << mHits << endl;
+		cout << setw(40) << "Misses due to Overlap: " << setw(10) << mMissesBecauseOverlap << endl;
+		cout << setw(40) << "Misses due to Zero hash: " << setw(10) << mMissesBecauseZero << endl;
+		cout << setw(40) << "Misses due to insufficient depth: " << setw(10) << mMissesBecauseDepth << endl;
 	}
 #endif
 
@@ -115,6 +128,7 @@ private:
 	uint64_t mHashMask;
 
 #ifdef INFO
+	uint64_t mEntries;
 	uint64_t mMisses;
 	uint64_t mHits;
 	uint64_t mMissesBecauseOverlap;

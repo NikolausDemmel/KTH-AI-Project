@@ -24,7 +24,7 @@ string Move::toString(const Board *board) const {
 		ss << board->indexToPos(mBoxIndex).toString();
 	else
 		ss << "index " << mBoxIndex;
-	ss << " " << dirToString(mDir);
+	ss << " " << cDirNames[mDir];
 	return ss.str();
 }
 
