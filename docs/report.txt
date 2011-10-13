@@ -1,0 +1,22 @@
+Contents
+1. Representation
+	1.1. Board
+	1.2. Moves
+	1.3. Data Structures
+	1.4. 
+2. Usage
+	2.1. Compile
+	2.2. Find Solution
+	2.3. Play Solution
+3. Algorithm
+	3.1. Move generation
+	3.2. Forward and Backward Search
+	3.3. Hashtable
+	3.4. Static Deadlocks
+	3.5. Freeze Deadlocks
+	3.6. Distance heuristic
+	3.7. Tunnels
+4. Future Scope
+	4.1. Reachable Area
+	4.2. Corral Deadlocks
+	4.3. Finer Optimisations
