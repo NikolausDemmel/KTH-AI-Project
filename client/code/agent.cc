@@ -148,8 +148,8 @@ void Agent::setBoard(Board *board) {
 	mBoard = board;
 }
 
-void Agent::setBackBoard(Board board) {
-	mBackBoard = board;
+void Agent::setBackBoard(Board *board) {
+	mBackBoard = *board;
 	int boxIndex = 0;
 	for (vector<Tile>::iterator it = mBackBoard.mTiles.begin(); it != mBackBoard.mTiles.end(); ++it) {
 		if (it->isBox()) {
