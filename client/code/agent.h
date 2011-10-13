@@ -45,6 +45,8 @@ public:
 
 	void findSolution();
 	
+	void setDistanceMetric();
+	
 	void findDeadTiles();
 
 	SearchResult depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting, bool deadlockSearch=false);

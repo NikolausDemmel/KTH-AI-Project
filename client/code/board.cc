@@ -60,7 +60,7 @@ void Board::printBoard(uint8_t print_flags) const {
 }
 
 //creates a String that can be printed
-string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * const nodes, bool print_dead) const
+string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * const nodes, bool print_dead, bool print_dist) const
 {
 	stringstream board;
 	for(int y = mHeight-1; y >= 0; --y) {
@@ -73,7 +73,7 @@ string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * co
 				else
 					board << '@';
 			else
-				board << tileCharacter(mTiles[index], (nodes ? &(nodes->at(index)) : 0), print_dead);
+				board << tileCharacter(mTiles[index], (nodes ? &(nodes->at(index)) : 0), print_dead, print_dist);
 			board << endFlagString(printFlags);
 		}
 		board << '\n';
@@ -473,21 +473,24 @@ Tile Board::parseTile(char c) {
 }
 
 // character from tile ignoring the player
-char Board::tileCharacter(const Tile &tile, const TileGraphNode * const node, bool print_dead) {
+char Board::tileCharacter(const Tile &tile, const TileGraphNode * const node, bool print_dead, bool print_dist) {
 	switch(tile.static_type) {
 	case Tile::Empty:
 		if (tile.isBox())
 			return '$';
 		else {
-			if (node)
+			if (node) {
 				return '0' + node->distance;
-			else if(print_dead) {
-				if(tile.isDead())
+			}
+			else{
+
+				if(print_dead &&tile.isDead())
 					return '-';
-				else
-					return ' ';
-			} else
+				if(print_dist) {
+					return tile.distanceClosestGoal%10 + '0';
+				} else
 				return ' ';
+			}
 		}
 	case Tile::Wall:
 		return '#';

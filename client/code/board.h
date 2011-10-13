@@ -184,7 +184,7 @@ public:
 
 	void printBoard(uint8_t printFlags = 0) const;
 
-	string boardToString(uint8_t printFlags = 0, const vector<TileGraphNode> * const nodes = 0, bool print_dead=false) const;
+	string boardToString(uint8_t printFlags = 0, const vector<TileGraphNode> * const nodes = 0, bool print_dead=false, bool print_dist=false) const;
 private:
 
 	void parseBoard(const char* board);
@@ -195,7 +195,7 @@ private:
 	static Tile parseTile(char c);
 
 	// character from tile ignoring the player, used e.g. for printing the board
-	static char tileCharacter(const Tile &t, const TileGraphNode * const node, bool print_dead);
+	static char tileCharacter(const Tile &t, const TileGraphNode * const node, bool print_dead, bool print_dist);
 
 	// FlagString returns the string-code for the color of the tile
 	// set colour if tile is visited, ...

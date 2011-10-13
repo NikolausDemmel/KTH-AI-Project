@@ -7,8 +7,36 @@
 
 #include <sstream>
 #include "agent.h"
+#include <queue>
 
 namespace mnp {
+
+void Agent::setDistanceMetric() {
+	
+	queue<index_t> toExplore;
+	
+	for(vector<index_t>::iterator it = mBoard->mGoals.begin(); it<mBoard->mGoals.end(); ++it) {
+		mBoard->mTiles[*it].distanceClosestGoal = 0;
+		toExplore.push(*it);
+	}
+	
+	while(! toExplore.empty()) {
+		if(!mBoard->mTiles[toExplore.front()].isWall()) {
+			foreach(Dir dir, cDirs){
+				index_t next = mBoard->tileIndex(toExplore.front(), dir);
+				if(mBoard->mTiles[next].distanceClosestGoal<0) {
+					mBoard->mTiles[next].distanceClosestGoal = mBoard->mTiles[toExplore.front()].distanceClosestGoal + 1;
+					toExplore.push(next);
+				}
+			}
+		}
+		
+		toExplore.pop();
+		
+	}
+	
+	
+}
 
 void Agent::findSolution()
 {
@@ -18,7 +46,11 @@ void Agent::findSolution()
 	uint64_t hashMeeting = 0;
 
 	findDeadTiles();
+	
+	setDistanceMetric();
 	cout<<mBoard->boardToString(0,0,true)<<endl;
+	cout<<mBoard->boardToString(0,0,false,true)<<endl;
+	cout<<mBoard->boardToString(0,0,true,true)<<endl;
 	//cin.get();
 	
 	mSolutionMoves.clear();
@@ -136,7 +168,7 @@ void Agent::findDeadTiles() {
 				//playBoard.printBoard();
 				
 				uint64_t dump = 0;
-				fres = depthLimitedSearch(100, &playBoard, Forward, dump, true);
+				fres = depthLimitedSearch(10000, &playBoard, Forward, dump, true);
 				
 				
 			}

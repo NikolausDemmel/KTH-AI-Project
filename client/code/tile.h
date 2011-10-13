@@ -37,6 +37,7 @@ struct Tile {
 	bool isDeadLoc;
 	bool bckReachable;
 	bool fwdReachable;
+	int  distanceClosestGoal;
 
 
 
@@ -46,7 +47,8 @@ struct Tile {
 		flags(flags_),
 		isDeadLoc(false),
 		bckReachable(false),
-		fwdReachable(false)
+		fwdReachable(false),
+		distanceClosestGoal(-1)
 	{
 	}
 
