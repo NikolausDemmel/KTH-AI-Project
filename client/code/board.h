@@ -217,11 +217,15 @@ public:
 		return mHashValue;
 	}
 
+	// computes the hash value from scratch
+	uint64_t computeHashValue() const ;
 
 	void recomputeHashValue() {
 		mHashValue = computeHashValue();
 	}
 
+	void getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash);
+	void getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash);
 
 private:
 
@@ -235,8 +239,7 @@ private:
 	// xor the number to the hash value
 	void updateHash(uint64_t zobristNumber);
 
-	// computes the hash value from scratch
-	uint64_t computeHashValue() const ;
+
 
 	// computes an alternative hash value from scratch
 	uint64_t computeHash2Value();

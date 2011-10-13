@@ -18,6 +18,21 @@ void Agent::findSolution()
 	uint64_t hashMeeting = 0;
 
 	mSolutionMoves.clear();
+	vector<index_t> possiblePlayerInd, forwardpos;
+	vector<uint64_t> backwardhashes,forwardhashes;
+
+
+	// get all hashes for playerpos at beginning of backward search
+	mBoard->getAllPlayerPosHashForward(forwardpos, forwardhashes, true);
+	foreach(uint64_t hashf, forwardhashes){
+		mHashTable.lookup(hashf,0); //depth = 0?
+		cout << " put hashes in forwardhash " << hashf <<  endl;
+	}
+	mBackBoard.getAllPlayerPosHashBack(possiblePlayerInd, backwardhashes, true);
+	foreach(uint64_t hashb, backwardhashes){
+		mBackwardHashTable.lookup(hashb,0); //depth = 0?
+		cout << " put hashes in backwardhash " << hashb <<  endl;
+	}
 
 	do {
 #ifdef INFO
@@ -25,6 +40,7 @@ void Agent::findSolution()
 		cout << "[agent] # of boxes " << mBoard->mBoxes.size() << endl;
 		cout << "[agent] log size of board " << mBoard->mIndexBits << endl;
 #endif
+
 		resultForward = depthLimitedSearch(depth, mBoard, Forward, hashMeeting);
 		resultBackward = depthLimitedSearch(depth, &mBackBoard, Backward, hashMeeting);
 		++depth;
@@ -63,20 +79,30 @@ void Agent::findSolution()
 SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting)
 {
 
-	// 1. Base Cases
-	if (depth == 0) return CutOff;
 
-	if (type == Forward && mBoard->isSolved()) return Solution; //FIXME: if type is backward, return "Solution" if boxes are at initial positions
+	// 1. Base Cases
+	if (depth == 0){
+		return CutOff;
+	}
+
+	//if (type == Forward && mBoard->isSolved()) return Solution; //FIXME: if type is backward, return "Solution" if boxes are at initial positions
 																//(should not happen, because forward and backward should meet somewhere before)
 
 	// 2. Hashtable lookup
 	if (type ==  Forward) {
+
+		//cout << "ForwardHash foo: " << mBoard->getHash() << endl;
+		//cout << "ForwardHash foo2: " << mBoard->computeHashValue() << endl;
+		//cout << "ForwardHash: " << mBoard->getHash() << endl;
 		if (hashMeeting != 0) {
-			if (hashMeeting == mBoard->getHash())
+			if (hashMeeting == mBoard->getHash()){
+				cout << "hashmeeting ok " << endl;
 				return SolutionMeeting;
+			}
 		}
 		else if (mBackwardHashTable.compare(mBoard->getHash())) {
-					cout << "ForwardHash: " << mBoard->getHash() << endl;
+					mHashTable.lookup(mBoard->getHash(), depth); // FIXME: necessary?
+					//cout << "ForwardHash: " << mBoard->getHash() << endl;
 					hashMeeting = mBoard->getHash();
 					return SolutionMeeting;
 				}
@@ -87,13 +113,19 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 
 	}
 	else {
+		//cout << "BackwardHash foo: " << mBackBoard.getHash() << endl;
+		//cout << "BackwardHash foo2: " << mBackBoard.computeHashValue() << endl;
+		//cout << "BackwardHash: " << mBackBoard.getHash() << endl;
 		if (hashMeeting != 0) {
-			if(hashMeeting == mBackBoard.getHash())
+			if(hashMeeting == mBackBoard.getHash()){
+				cout << "hashmeeting ok " << endl;
 				return SolutionMeeting;
+			}
 		}
 		else if (mHashTable.compare(mBackBoard.getHash())) {
-					cout << "BackwardHash: " << mBackBoard.getHash() << endl;
+					//cout << "BackwardHash: " << mBackBoard.getHash() << endl;
 					hashMeeting = mBackBoard.getHash();
+					mBackwardHashTable.lookup(mBackBoard.getHash(), depth); //FIXME: necessary?
 					return SolutionMeeting;
 				}
 
@@ -113,13 +145,15 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 	SearchResult result;
 
 	board->generateMoves(possible_moves, type);
-
+	int i = 0;
 	foreach ( Move &move, possible_moves) {
 
 		board->applyMove(move, type);
 //		myBoard->PrintBoard();
+		//cout << "apply move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
 		result = depthLimitedSearch(depth-1, board, type, hashMeeting);
 		board->undoMove(move, type);
+
 
 
 		if (result==CutOff) {
@@ -134,7 +168,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 				mSolutionMoves.push_back(move);
 				//return SolutionMeeting;
 			}
-			return SolutionMeeting;
+			return SolutionMeeting; //FIXME: return result?
 		}
 	}
 
@@ -160,7 +194,7 @@ void Agent::setBackBoard(Board *board) {
 			boxIndex++;
 		}
 	}
-	mBackBoard.mPlayerIndex = -1;
+	mBackBoard.mPlayerIndex = 0;
 	mBackBoard.recomputeHashValue();
 
 }

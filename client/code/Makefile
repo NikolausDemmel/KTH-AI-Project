@@ -1,11 +1,11 @@
 
 SERVER=130.237.218.85
-PORT=7777
+PORT=7778
 # 7777 many boards
 # 7778 trivial boards
 # 7781 and 7782 have similar difficulty to the ones used in evaluation
 
-BOARD=3
+BOARD=1
 LASTBOARD=100
 OPTIONS=
 #OPTIONS=playsol 10

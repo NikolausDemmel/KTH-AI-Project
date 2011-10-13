@@ -236,39 +236,33 @@ void Board::generateMoves(vector<Move> &moves, SearchType type)
 {
 	if (type == Forward) {
 		visitTile(mPlayerIndex, moves);
+		//cout << "size of all moves forward" << moves.size() << endl;
 	}
 	else {
 
 		//first iteration: do not use start pos of player...
 		vector<index_t> possiblePlayerInd;
-		if(mPlayerIndex == -1)
+		vector<uint64_t> hashes;
+		if(mPlayerIndex == 0)
 		{
-			cout << "should only happen at the beginning!" << endl;
-			for(int i = 0; i<mTiles.size();i++)
-			{
-				if(mTiles[i].isGoal()){
-					foreach(Dir dir, cDirs){
-						index_t next = tileIndex(i, dir);
-						if(mTiles[next].isFree()){
-							possiblePlayerInd.push_back(next); // TODO: do not save same player pos several times
-						}
-					}
-				}
-			}
-			cout << "size of possible player indices " << possiblePlayerInd.size() << endl;
+			//cout << "should only happen at the beginning!" << endl;
+			getAllPlayerPosHashBack(possiblePlayerInd, hashes, false);
+			//cout << "size of possible player indices " << possiblePlayerInd.size() << endl;
 			foreach(index_t tile, possiblePlayerInd){
 				vector<Move> tempmoves;
 				reverseVisitTile(tile, tempmoves);  // works quite good with our flags, moves are only once in the vector :)
-				cout << "size of tempmoves" << tempmoves.size() << endl;
+
+				//cout << "size of tempmoves " << tempmoves.size() << endl;
 				foreach(Move move, tempmoves){
 					moves.push_back(move);
 				}
-				cout << "size of all moves" << moves.size() << endl;
+				//cout << "size of all moves " << moves.size() << endl;
 			}
 		}
-
 		else{
 			reverseVisitTile(mPlayerIndex, moves);
+			//cout << "playerindex:" << mPlayerIndex << endl;
+			//cout << "size of all moves in else " << moves.size() << endl;
 		}
 
 
@@ -282,6 +276,60 @@ void Board::generateMoves(vector<Move> &moves, SearchType type)
 	}
 #endif
 	clearFlags();
+}
+
+
+void Board::getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash){
+
+	updateHash(getZobristPlayer(mPlayerIndex));
+	vector<Move> moves;
+	visitTile(mPlayerIndex, moves);
+	clearFlags();
+	//if(mPlayerIndex == mInitialPlayerIndex)
+	//{
+		foreach(Move move, moves)
+	{
+			index_t next = tileIndex(move.getBoxIndex(), move.getMoveDir(), -1);
+			possiblePlayerInd.push_back(next);
+			if(hash == true)
+			{
+				updateHash(getZobristPlayer(next));
+				hashes.push_back(getHash());
+				updateHash(getZobristPlayer(next));
+			}
+	}
+		//setPlayerIndex(mInitialPlayerIndex);
+	//}
+
+	updateHash(getZobristPlayer(mPlayerIndex));
+
+}
+void Board::getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash){
+	//if(mPlayerIndex == -1){
+		updateHash(getZobristPlayer(mPlayerIndex));
+	//}
+
+	for(int i = 0; i<mTiles.size();i++)
+				{
+					if(mTiles[i].isGoal()){
+						foreach(Dir dir, cDirs){
+							index_t next = tileIndex(i, dir);
+							if(mTiles[next].isFree()){
+								possiblePlayerInd.push_back(next); // TODO: do not save same player pos several times
+								//cout << "possible player index pushback " << next << endl;
+								if(hash == true){
+									updateHash(getZobristPlayer(next));
+									//cout << "pushback hash " << getHash() <<endl;
+									hashes.push_back(getHash());
+									updateHash(getZobristPlayer(next));
+								}
+							}
+						}
+					}
+				}
+
+		updateHash(getZobristPlayer(mPlayerIndex));
+
 }
 
 void Board::visitTile(index_t tile, vector<Move> &moves)
