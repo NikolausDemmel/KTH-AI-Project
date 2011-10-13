@@ -17,21 +17,23 @@ void Agent::findSolution()
 	uint depth = 1;
 	uint64_t hashMeeting = 0;
 
+	typedef pair<uint64_t, uint64_t> hashpair;
+
 	mSolutionMoves.clear();
 	vector<index_t> possiblePlayerInd, forwardpos;
-	vector<uint64_t> backwardhashes,forwardhashes;
+	vector<hashpair> backwardhashes,forwardhashes;
 
 
 	// get all hashes for playerpos at beginning of backward search
 	mBoard->getAllPlayerPosHashForward(forwardpos, forwardhashes, true);
-	foreach(uint64_t hashf, forwardhashes){
-		mHashTable.lookup(hashf,0); //depth = 0?
-		cout << " put hashes in forwardhash " << hashf <<  endl;
+	foreach(hashpair hashf, forwardhashes) {
+		mHashTable.lookup(hashf.first, 0, hashf.second); //depth = 0?
+		cout << " put hashes in forwardhash " << hashf.first << ", " << hashf.second <<  endl;
 	}
 	mBackBoard.getAllPlayerPosHashBack(possiblePlayerInd, backwardhashes, true);
-	foreach(uint64_t hashb, backwardhashes){
-		mBackwardHashTable.lookup(hashb,0); //depth = 0?
-		cout << " put hashes in backwardhash " << hashb <<  endl;
+	foreach(hashpair hashb, backwardhashes){
+		mBackwardHashTable.lookup(hashb.first,0, hashb.second); //depth = 0?
+		cout << " put hashes in backwardhash " << hashb.first << ", " << hashb.second <<  endl;
 	}
 
 	do {
@@ -49,15 +51,10 @@ void Agent::findSolution()
 		mHashTable.printStatistics();
 		mBackwardHashTable.printStatistics();
 #endif
-		// FIXME:
-		// mHashTable.clear();
 		mHashTable.clearStatistic();
 		mBackwardHashTable.clearStatistic();
-	} while (resultForward == CutOff && resultBackward == CutOff);
+	} while (resultForward == CutOff);
 
-	/*if (resultBackward == SolutionMeeting && resultForward == CutOff) {
-		resultForward = depthLimitedSearch(--depth, mBoard, Forward, hashMeeting);
-	}*/
 
 	cout << "After search" << endl;
 	foreach(Move &m, mSolutionMoves) {
@@ -91,52 +88,36 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 	// 2. Hashtable lookup
 	if (type ==  Forward) {
 
-		//cout << "ForwardHash foo: " << mBoard->getHash() << endl;
-		//cout << "ForwardHash foo2: " << mBoard->computeHashValue() << endl;
-		//cout << "ForwardHash: " << mBoard->getHash() << endl;
-		/*if (hashMeeting != 0) {
-			if (hashMeeting == mBoard->getHash()){
-				cout << "hashmeeting ok , index is " << mBoard->getPlayerIndex() << endl;
-				return SolutionMeeting;
-			}
-		}*/
-		//else if (mBackwardHashTable.compare(mBoard->getHash())) {
-		if (mBackwardHashTable.compare(mBoard->getHash())) {
-					mHashTable.lookup(mBoard->getHash(), depth); // FIXME: necessary?
-					cout << "ForwardHash: " << mBoard->getHash() << " at index " << mBoard->getPlayerIndex() << endl;
-					cout << "ForwardHash computed: " << mBoard->computeHashValue() << endl;
-					hashMeeting = mBoard->getHash();
-					return SolutionMeeting;
-				}
+		if (mBackwardHashTable.compare(mBoard->getHash(), mBoard->computeHash2Value())) {
+			mHashTable.lookup(mBoard->getHash(), depth, mBoard->computeHash2Value()); // FIXME: necessary?
+			cout << "ForwardHash: " << mBoard->getHash() << " at index " << mBoard->getPlayerIndex() << endl;
+			cout << "ForwardHash computed: " << mBoard->computeHashValue() << endl;
+			cout << "ForwardHash 2: " << mBoard->computeHash2Value() << endl;
+			hashMeeting = mBoard->computeHash2Value();
+			return SolutionMeeting;
+		}
 
-		else if (mHashTable.lookup(mBoard->getHash(), depth)){
+
+		if (mHashTable.lookup(mBoard->getHash(), depth, mBoard->computeHash2Value())){
 			return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 		}
 
 	}
 	else {
-		//cout << "BackwardHash foo: " << mBackBoard.getHash() << endl;
-		//cout << "BackwardHash foo2: " << mBackBoard.computeHashValue() << endl;
-		//cout << "BackwardHash: " << mBackBoard.getHash() << endl;
+
 		if (hashMeeting != 0) {
-			if(hashMeeting == mBackBoard.getHash()){
+			if(hashMeeting == mBackBoard.computeHash2Value()){
 				cout << "hashmeeting ok, index is " << mBackBoard.getPlayerIndex() << endl;
 				cout << "hashmeeting  " << hashMeeting << endl;
 				cout << "BackwardHash in hashmeeting: " << mBackBoard.getHash() << " at index " << mBackBoard.getPlayerIndex() << endl;
 				cout << "BackwardHash computed in hashmeeting: " << mBackBoard.computeHashValue() << endl;
+				cout << "BackwardHash 2 computed in hashmeeting: " << mBackBoard.computeHash2Value() << endl;
 				return SolutionMeeting;
 			}
 		}
-		/*else if (mHashTable.compare(mBackBoard.getHash())) {
-					cout << "BackwardHash: " << mBackBoard.getHash() << " at index " << mBackBoard.getPlayerIndex() << endl;
-					cout << "BackwardHash computed: " << mBackBoard.computeHashValue() << endl;
-					hashMeeting = mBackBoard.getHash();
-					mBackwardHashTable.lookup(mBackBoard.getHash(), depth); //FIXME: necessary?
-					return SolutionMeeting;
-				}*/
 
-		if (mBackwardHashTable.lookup(mBackBoard.getHash(), depth)) {
-					return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
+		if (mBackwardHashTable.lookup(mBackBoard.getHash(), depth, mBackBoard.computeHash2Value())) {
+			return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 		}
 	}
 
@@ -191,13 +172,16 @@ void Agent::setBoard(Board *board) {
 
 void Agent::setBackBoard(Board *board) {
 	mBackBoard = *board;
+	mBackBoard.mBoxes.clear();
+
 	int boxIndex = 0;
-	for (vector<Tile>::iterator it = mBackBoard.mTiles.begin(); it != mBackBoard.mTiles.end(); ++it) {
-		if (it->isBox()) {
-			it->removeBox();
+	for (index_t i = 0; i < mBackBoard.mSize; ++i) {
+		if (mBackBoard.mTiles[i].isBox()) {
+			mBackBoard.mTiles[i].removeBox();
 		}
-		if (it->isGoal()){
-			it->setBox(boxIndex);
+		if (mBackBoard.mTiles[i].isGoal()) {
+			mBackBoard.mTiles[i].setBox(boxIndex);
+			mBackBoard.mBoxes.push_back(i);
 			boxIndex++;
 		}
 	}

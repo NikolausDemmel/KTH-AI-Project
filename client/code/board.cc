@@ -88,11 +88,12 @@ void Board::applyMove(const Move &move, SearchType type = Forward) {
 	index_t curr = move.getBoxIndex();
 	index_t next = move.getNextIndex(this);
 
-	updateHash(getZobristBox(curr));
-	updateHash(getZobristPlayer(mPlayerIndex));
+	updateHash(mZobristBoxes[curr]);
+	updateHash(mZobristPlayer[mPlayerIndex]);
 
 	int box = mTiles[curr].removeBox();
 	mTiles[next].setBox(box);
+	mBoxes[box] = next;
 
 	if (type == Forward) {
 		setPlayerIndex(curr);
@@ -101,18 +102,11 @@ void Board::applyMove(const Move &move, SearchType type = Forward) {
 	}
 	else {
 		setPlayerIndex(tileIndex(next, move.getMoveDir(), 1));
+		// dont care about missing goals
 	}
 
-	updateHash(getZobristBox(next));
-	updateHash(getZobristPlayer(mPlayerIndex));
-
-
-	// FIXME
-//	for (vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
-//		if (*it == curr) {
-//			*it = next;
-//		}
-//	}
+	updateHash(mZobristBoxes[next]);
+	updateHash(mZobristPlayer[mPlayerIndex]);
 }
 
 
@@ -122,11 +116,12 @@ void Board::undoMove(const Move &move, SearchType type = Forward) {
 	index_t curr = move.getBoxIndex();
 	index_t next = move.getNextIndex(this);
 
-	updateHash(getZobristBox(next));
-	updateHash(getZobristPlayer(mPlayerIndex));
+	updateHash(mZobristBoxes[next]);
+	updateHash(mZobristPlayer[mPlayerIndex]);
 
 	int box = mTiles[next].removeBox();
 	mTiles[curr].setBox(box);
+	mBoxes[box] = curr;
 
 	if (type == Forward) {
 		setPlayerIndex(move.getPlayerIndex(this));
@@ -137,16 +132,9 @@ void Board::undoMove(const Move &move, SearchType type = Forward) {
 		setPlayerIndex(next);
 	}
 
-	updateHash(getZobristBox(curr));
-	updateHash(getZobristPlayer(mPlayerIndex));
+	updateHash(mZobristBoxes[curr]);
+	updateHash(mZobristPlayer[mPlayerIndex]);
 
-
-	// FIXME:
-//	for (vector<int>::iterator it = mBoxes.begin(); it != mBoxes.end(); ++it) {
-//		if (*it == next) {
-//			*it = curr;
-//		}
-//	}
 }
 
 bool Board::doAction(Dir to) {
@@ -242,7 +230,7 @@ void Board::generateMoves(vector<Move> &moves, SearchType type)
 
 		//first iteration: do not use start pos of player...
 		vector<index_t> possiblePlayerInd;
-		vector<uint64_t> hashes;
+		vector<pair<uint64_t,uint64_t>> hashes;
 		if(mPlayerIndex == 0)
 		{
 			//cout << "should only happen at the beginning!" << endl;
@@ -279,64 +267,60 @@ void Board::generateMoves(vector<Move> &moves, SearchType type)
 }
 
 
-void Board::getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash){
+void Board::getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<pair<uint64_t, uint64_t>> &hashes, bool hash){
 
-	updateHash(getZobristPlayer(mPlayerIndex));
+	updateHash(mZobristPlayer[mPlayerIndex]);
+
 	vector<Move> moves;
 	visitTile(mPlayerIndex, moves);
 	clearFlags();
-	//if(mPlayerIndex == mInitialPlayerIndex)
-	//{
-		foreach(Move move, moves)
+
+	foreach(Move move, moves)
 	{
-			index_t next = tileIndex(move.getBoxIndex(), move.getMoveDir(), -1);
-			possiblePlayerInd.push_back(next);
-			//cout << "possible player index pushback forward" << next << endl;
-			if(hash == true)
-			{
-				setPlayerIndex(next);
-				updateHash(getZobristPlayer(next));
-				//cout << "pushback hash forward" << getHash() <<endl;
-				hashes.push_back(getHash());
-				updateHash(getZobristPlayer(next));
-			}
+		index_t next = move.getPlayerIndex(this);
+		possiblePlayerInd.push_back(next);
+		//cout << "possible player index pushback forward" << next << endl;
+		if(hash == true)
+		{
+			setPlayerIndex(next);
+			updateHash(mZobristPlayer[next]);
+			//cout << "pushback hash forward" << getHash() <<endl;
+			hashes.push_back(pair<uint64_t, uint64_t>(getHash(),computeHash2Value()));
+			updateHash(mZobristPlayer[next]);
+		}
 	}
-		setPlayerIndex(mInitialPlayerIndex);
-	//}
+
+	setPlayerIndex(mInitialPlayerIndex);
 
 	updateHash(getZobristPlayer(mPlayerIndex));
 
 }
-void Board::getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash){
-	//if(mPlayerIndex == -1){
-	//cout << "before removing startindex" << getHash() <<endl;
-		updateHash(getZobristPlayer(mPlayerIndex));
-		//cout << "after removing startindex" << getHash() <<endl;
-	//}
+void Board::getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<pair<uint64_t, uint64_t>> &hashes, bool hash){
+
+	updateHash(mZobristPlayer[mPlayerIndex]);
 
 	for(int i = 0; i<mTiles.size();i++)
-				{
-					if(mTiles[i].isGoal()){
-						foreach(Dir dir, cDirs){
-							index_t next = tileIndex(i, dir);
-							if(mTiles[next].isFree()){
-								possiblePlayerInd.push_back(next); // TODO: do not save same player pos several times
-								//cout << "possible player index pushback back" << next << endl;
-								if(hash == true){
-									setPlayerIndex(next);
-									updateHash(getZobristPlayer(mPlayerIndex));
-									//cout << "pushback hash back " << getHash() <<endl;
-									hashes.push_back(getHash());
-									updateHash(getZobristPlayer(mPlayerIndex));
-								}
-							}
-						}
+	{
+		if(mTiles[i].isGoal()){
+			foreach(Dir dir, cDirs){
+				index_t next = tileIndex(i, dir);
+				if(mTiles[next].isFree()){
+					possiblePlayerInd.push_back(next); // TODO: do not save same player pos several times
+					//cout << "possible player index pushback back" << next << endl;
+					if(hash == true){
+						setPlayerIndex(next);
+						updateHash(mZobristPlayer[mPlayerIndex]);
+						//cout << "pushback hash back " << getHash() <<endl;
+						hashes.push_back(pair<uint64_t, uint64_t>(getHash(), computeHash2Value()));
+						updateHash(mZobristPlayer[mPlayerIndex]);
 					}
 				}
-		setPlayerIndex(0);
-		//cout << "before adding startindex" << getHash() <<endl;
-		updateHash(getZobristPlayer(mPlayerIndex));
-		//cout << "after adding startindex" << getHash() <<endl;
+			}
+		}
+	}
+
+	setPlayerIndex(0);
+	updateHash(mZobristPlayer[mPlayerIndex]);
 
 }
 
@@ -559,12 +543,14 @@ uint64_t Board::computeHashValue() const {
 
 // computes an alternative hash value from scratch
 uint64_t  Board::computeHash2Value() {
-	uint64_t hash = mPlayerIndex;
-	foreach (index_t box_index, mBoxes ) {
-		hash <<= mIndexBits;
-		hash |= box_index;
-	}
-	return hash; // will always be != 0
+	return mHashValue;
+	// FIXME
+//	uint64_t hash = mPlayerIndex;
+//	foreach (index_t box_index, mBoxes ) {
+//		hash <<= mIndexBits;
+//		hash |= box_index;
+//	}
+//	return hash; // will always be != 0
 }
 
 

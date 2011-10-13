@@ -33,11 +33,14 @@ public:
 #ifdef INFO
 	void clearStatistic() {
 		mMisses = 0;
+		mCollisionMisses = 0;
 		mHits = 0;
+		mCollisionHits = 0;
 		mCollision = 0;
 		mMissesBecauseOverlap = 0;
 		mMissesBecauseZero = 0;
 		mMissesBecauseDepth = 0;
+		mCollisionMissesBecauseDepth = 0;
 	}
 #endif
 
@@ -45,6 +48,7 @@ public:
 #ifdef INFO
 		clearStatistic();
 		mEntries = 0;
+		mCollisionEntries = 0;
 #endif
 		memset(mTable, 0, mSize*sizeof(uint64_t));
 		memset(mDepthTable, 0, mSize*sizeof(uint8_t));
@@ -112,7 +116,7 @@ public:
 //		cout << "storedHash " << value << endl;
 //		cout << "newHash " << validation_hash << endl;
 #endif
-		int64_t new_index = index;
+		int64_t new_index;
 
 		for (uint i = 1;; i++) {
 			if (i > 10) { //hashtable is quite full
@@ -122,11 +126,12 @@ public:
 				return false;
 			}
 			//cout << "i: " << i << endl;
-			new_index = (new_index + i*i) % mSize; //TODO: hash +c*i² +c mod x
+			new_index = (index + i*i) % mSize; //TODO: hash +c*i² +c mod x
 			//cout << "neuer Index: " << new_index << endl;
 			if (mTable[new_index] == 0) {
 #ifdef INFO
-				++mMisses;
+				++mCollisionMisses;
+				++mCollisionEntries;
 #endif
 				mTable[new_index] = validation_hash;
 				mDepthTable[new_index] = remaining_depth;
@@ -138,12 +143,12 @@ public:
 				if (mDepthTable[new_index] < remaining_depth) {
 					mDepthTable[new_index] = remaining_depth;
 #ifdef INFO
-					++mMissesBecauseDepth;
+					++mCollisionMissesBecauseDepth;
 #endif
 					return false;
 				}
 #ifdef INFO
-				++mHits;
+				++mCollisionHits;
 				//cout << "same hash" << endl;
 #endif
 				return true;
@@ -153,31 +158,33 @@ public:
 		return false;
 	}
 
-	bool compare(uint64_t hash) {
+	bool compare(uint64_t hash, uint64_t validation_hash = 0) {
 		uint64_t index = getIndex(hash);
 		uint64_t value = mTable[index];
+		if (validation_hash == 0)
+			validation_hash = hash;
 
 		if (value == 0) {
 			return false;
 		}
-		if (value == hash) {
+		if (value == validation_hash) {
 			return true;
 		}
 
-		int64_t new_index = index;
+		int64_t new_index;
 
 		for (uint i = 1;; i++) {
 			if (i > 10) { //hashtable is quite full
 				return false;
 			}
 			//cout << "i: " << i << endl;
-			new_index = (new_index + i*i) % mSize; //TODO: hash +c*i² +c mod x
+			new_index = (index + i*i) % mSize; //TODO: hash +c*i² +c mod x
 			//cout << "neuer Index: " << new_index << endl;
 			if (mTable[new_index] == 0) {
 				return false;
 			}
 			value = mTable[new_index];
-			if (value == hash) {
+			if (value == validation_hash) {
 				return true;
 			}
 		}
@@ -188,13 +195,17 @@ public:
 		cout << "Hash table statistics:" << endl;
 		cout << setw(40) << "Size: " << setw(10) << mSize << endl;
 		cout << setw(40) << "Entries: " << setw(10) << mEntries << endl;
-		cout << setw(40) << "Filled (in %): " << setw(10) << (100*mEntries) / mSize << endl;
+		cout << setw(40) << "CollisionEntries: " << setw(10) << mCollisionEntries << endl;
+		cout << setw(40) << "Filled (in %): " << setw(10) << (100*(mEntries+mCollisionEntries)) / mSize << endl;
 		cout << setw(40) << "Misses: " << setw(10) << mMisses << endl;
+		cout << setw(40) << "CollisionMisses: " << setw(10) << mCollisionMisses << endl;
 		cout << setw(40) << "Hits: " << setw(10) << mHits << endl;
+		cout << setw(40) << "CollisionHits: " << setw(10) << mCollisionHits << endl;
 		cout << setw(40) << "Collisions: " << setw(10) << mCollision << endl;
 		cout << setw(40) << "Misses due to Overlap: " << setw(10) << mMissesBecauseOverlap << endl;
 		cout << setw(40) << "Misses due to Zero hash: " << setw(10) << mMissesBecauseZero << endl;
 		cout << setw(40) << "Misses due to insufficient depth: " << setw(10) << mMissesBecauseDepth << endl;
+		cout << setw(40) << "CollisionMisses due to insufficient depth: " << setw(10) << mCollisionMissesBecauseDepth << endl;
 	}
 #endif
 
@@ -212,6 +223,10 @@ private:
 	uint64_t mMissesBecauseOverlap;
 	uint64_t mMissesBecauseZero;
 	uint64_t mMissesBecauseDepth;
+	uint64_t mCollisionEntries;
+	uint64_t mCollisionMisses;
+	uint64_t mCollisionHits;
+	uint64_t mCollisionMissesBecauseDepth;
 #endif
 
 };

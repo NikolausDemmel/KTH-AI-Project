@@ -224,9 +224,11 @@ public:
 		mHashValue = computeHashValue();
 	}
 
-	void getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash);
-	void getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash);
+	void getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<pair<uint64_t,uint64_t>> &hashes, bool hash);
+	void getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<pair<uint64_t,uint64_t>> &hashes, bool hash);
 
+	// computes an alternative hash value from scratch
+	uint64_t computeHash2Value();
 private:
 
 	// create the array of zobrist numbers with random numbers;
@@ -241,8 +243,6 @@ private:
 
 
 
-	// computes an alternative hash value from scratch
-	uint64_t computeHash2Value();
 
 
 	////////////////////////////////////////////////////////////////////////////////
