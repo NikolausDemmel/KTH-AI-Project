@@ -41,7 +41,7 @@ public:
 
 	void setBoard(Board *board);
 
-	void setBackBoard(Board board);
+	void setBackBoard(Board *board);
 
 	void findSolution();
 

@@ -17,9 +17,9 @@
 namespace mnp {
 
 
-struct TileNode {
+struct TileGraphNode {
 
-	TileNode():
+	TileGraphNode():
 		distance(numeric_limits<uint>::max()),
 		visited(false),
 		parent(Up)
@@ -30,10 +30,9 @@ struct TileNode {
 	bool visited;
 	Dir parent;
 
-
 	struct IndexComparator {
 
-		IndexComparator(const vector<TileNode> *nodes):
+		IndexComparator(const vector<TileGraphNode> *nodes):
 			mNodes(nodes)
 		{
 		}
@@ -43,7 +42,7 @@ struct TileNode {
 		}
 
 	private:
-		const vector<TileNode> *mNodes;
+		const vector<TileGraphNode> *mNodes;
 
 	};
 

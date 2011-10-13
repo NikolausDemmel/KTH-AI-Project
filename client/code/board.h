@@ -9,7 +9,7 @@
 #define BOARD_H_
 
 #include "tile.h"
-#include "tilenode.h"
+#include "tilegraphnode.h"
 #include "common.h"
 #include "move.h"
 #include <string>
@@ -25,6 +25,8 @@
 using namespace std;
 
 namespace mnp {
+
+
 
 // TODO: evaluate if it makes sense to have an array of indices of the non-wall tiles
 // TODO: IDEA: store a list of indeces, that are actually relevat, i.e. not walls and not never reachable tiles!!!
@@ -185,8 +187,8 @@ public:
 
 	void printBoard(uint8_t printFlags = 0) const;
 
+	string boardToString(uint8_t printFlags = 0, const vector<TileGraphNode> * const nodes = 0) const;
 private:
-	string boardToString(uint8_t printFlags = 0, const vector<TileNode> * const nodes = 0) const;
 
 	void parseBoard(const char* board);
 
@@ -196,7 +198,7 @@ private:
 	static Tile parseTile(char c);
 
 	// character from tile ignoring the player, used e.g. for printing the board
-	static char tileCharacter(const Tile &t, const TileNode * const node);
+	static char tileCharacter(const Tile &t, const TileGraphNode * const node);
 
 	// FlagString returns the string-code for the color of the tile
 	// set colour if tile is visited, ...
