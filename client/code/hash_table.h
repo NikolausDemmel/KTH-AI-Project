@@ -67,13 +67,13 @@ public:
 //		cout << "lookup on hash: " << hash << endl;
 //#endif
 		if (hash == 0) {
-			// this is bad, size 0 is our "Not there" value
-
+			// this is bad, 0 is our "Not there" value
 #ifdef INFO
 			++mMissesBecauseZero;
 #endif
 			return false;
 		}
+
 		uint64_t index = getIndex(hash);
 		uint64_t value = mTable[index];
 		if (validation_hash == 0)
@@ -102,18 +102,13 @@ public:
 			return true;
 		}
 
-		//collision occurred, find other position (at the moment with quadratic probing)
-		//TODO: think of other collision resolution
+		// collision occurred, find other position (at the moment with quadratic probing)
+		// TODO: think of other collision resolution
+		// IDEA: use the remaining bits from hash, e.g. try getIndex(hash >> 10), then getIndex(hash >> 20), etc
 #ifdef INFO
 		++mCollision;
-//
-//		uint64_t count = 0;
-//				for (int j = 0; j < mSize; j++) {
-//					if (mTable[j] != 0)
-//						count++;
-//				}
-//
-//		cout << "freie Plätze: " << mSize-count << endl;
+
+//		cout << "freie Plaetze: " << mSize-mEntries << endl;
 //		cout << "storedHash " << value << endl;
 //		cout << "newHash " << validation_hash << endl;
 #endif
@@ -121,6 +116,9 @@ public:
 
 		for (uint i = 1;; i++) {
 			if (i > 10) { //hashtable is quite full
+#ifdef INFO
+				++mMissesBecauseOverlap;
+#endif
 				return false;
 			}
 			//cout << "i: " << i << endl;
@@ -128,10 +126,10 @@ public:
 			//cout << "neuer Index: " << new_index << endl;
 			if (mTable[new_index] == 0) {
 #ifdef INFO
-				++mHits;
+				++mMisses;
 #endif
 				mTable[new_index] = validation_hash;
-				mDepthTable[index] = remaining_depth;
+				mDepthTable[new_index] = remaining_depth;
 				//cout << "stored" << endl;
 				return false;
 			}
@@ -152,10 +150,6 @@ public:
 			}
 		}
 
-
-#ifdef INFO
-		++mMissesBecauseOverlap;
-#endif
 		return false;
 	}
 
