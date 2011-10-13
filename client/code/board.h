@@ -9,7 +9,7 @@
 #define BOARD_H_
 
 #include "tile.h"
-#include "tilenode.h"
+#include "tilegraphnode.h"
 #include "common.h"
 #include "move.h"
 #include <string>
@@ -187,8 +187,8 @@ public:
 
 	void printBoard(uint8_t printFlags = 0) const;
 
-private:
 	string boardToString(uint8_t printFlags = 0, const vector<TileGraphNode> * const nodes = 0) const;
+private:
 
 	void parseBoard(const char* board);
 
