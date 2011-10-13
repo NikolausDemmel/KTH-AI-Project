@@ -148,11 +148,13 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 	int i = 0;
 	foreach ( Move &move, possible_moves) {
 
+		//cout << "apply move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
 		board->applyMove(move, type);
 //		myBoard->PrintBoard();
-		//cout << "apply move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
+		//cout << "applied move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
 		result = depthLimitedSearch(depth-1, board, type, hashMeeting);
 		board->undoMove(move, type);
+		//cout << "undone move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
 
 
 

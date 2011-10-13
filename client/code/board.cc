@@ -291,14 +291,17 @@ void Board::getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vecto
 	{
 			index_t next = tileIndex(move.getBoxIndex(), move.getMoveDir(), -1);
 			possiblePlayerInd.push_back(next);
+			//cout << "possible player index pushback forward" << next << endl;
 			if(hash == true)
 			{
+				setPlayerIndex(next);
 				updateHash(getZobristPlayer(next));
+				//cout << "pushback hash forward" << getHash() <<endl;
 				hashes.push_back(getHash());
 				updateHash(getZobristPlayer(next));
 			}
 	}
-		//setPlayerIndex(mInitialPlayerIndex);
+		setPlayerIndex(mInitialPlayerIndex);
 	//}
 
 	updateHash(getZobristPlayer(mPlayerIndex));
@@ -306,7 +309,9 @@ void Board::getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vecto
 }
 void Board::getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<uint64_t> &hashes, bool hash){
 	//if(mPlayerIndex == -1){
+	//cout << "before removing startindex" << getHash() <<endl;
 		updateHash(getZobristPlayer(mPlayerIndex));
+		//cout << "after removing startindex" << getHash() <<endl;
 	//}
 
 	for(int i = 0; i<mTiles.size();i++)
@@ -316,19 +321,22 @@ void Board::getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<u
 							index_t next = tileIndex(i, dir);
 							if(mTiles[next].isFree()){
 								possiblePlayerInd.push_back(next); // TODO: do not save same player pos several times
-								//cout << "possible player index pushback " << next << endl;
+								//cout << "possible player index pushback back" << next << endl;
 								if(hash == true){
-									updateHash(getZobristPlayer(next));
-									//cout << "pushback hash " << getHash() <<endl;
+									setPlayerIndex(next);
+									updateHash(getZobristPlayer(mPlayerIndex));
+									//cout << "pushback hash back " << getHash() <<endl;
 									hashes.push_back(getHash());
-									updateHash(getZobristPlayer(next));
+									updateHash(getZobristPlayer(mPlayerIndex));
 								}
 							}
 						}
 					}
 				}
-
+		setPlayerIndex(0);
+		//cout << "before adding startindex" << getHash() <<endl;
 		updateHash(getZobristPlayer(mPlayerIndex));
+		//cout << "after adding startindex" << getHash() <<endl;
 
 }
 
