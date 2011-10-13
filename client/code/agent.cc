@@ -79,6 +79,8 @@ void Agent::findSolution()
 
 		resultForward = depthLimitedSearch(depth, mBoard, Forward, hashMeeting);
 		resultBackward = depthLimitedSearch(depth, &mBackBoard, Backward, hashMeeting);
+		fwdDepthChecked = depth;
+		backDepthChecked = depth;
 		++depth;
 #ifdef INFO
 		cout << "[agent] search result for this depth: forward: " << cSearchResultNames[resultForward] << " ; backward: " << cSearchResultNames[resultBackward] << endl;
@@ -212,6 +214,10 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 				if(mBoard->mTiles[board->mBoxes[0]].bckReachable == true) {
 				mBoard->mTiles[board->mBoxes[0]].isDeadLoc = false;
 			}
+		} else {
+			
+			//cout<<"Minimum Depth Reqd:"<<mBoard->minMovesReqd()<<" given Depth:"<<depth<<" back Checked:"<<backDepthChecked<<" break:"<<(mBoard->minMovesReqd() > depth+backDepthChecked)<<endl;
+			if(mBoard->minMovesReqd() > depth+backDepthChecked) return CutOff;
 		}
 
 			//cout << "ForwardHash foo: " << mBoard->getHash() << endl;

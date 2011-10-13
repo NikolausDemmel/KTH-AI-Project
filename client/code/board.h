@@ -68,6 +68,14 @@ public:
 
 	// calls visitTile
 	void generateMoves(vector<Move> &moves, SearchType type);
+	
+	inline int minMovesReqd() const {
+		int moves=0;
+		foreach (index_t box_index, mBoxes ) {
+			moves+=mTiles[box_index].distanceClosestGoal;
+		}
+		return moves;
+	}
 
 
 private: // FIXME

@@ -22,7 +22,9 @@ public:
 
 	Agent():
 		mHashTable(26), // 2^26 entries if 64 bit values should be 512 MB
-		mBackwardHashTable(26)
+		mBackwardHashTable(26),
+		fwdDepthChecked(0),
+		backDepthChecked(0)
 	{
 	}
 
@@ -60,6 +62,9 @@ private:
 
 	HashTable mHashTable;
 	HashTable mBackwardHashTable;
+	
+	int fwdDepthChecked;
+	int backDepthChecked;
 
 public: // FIXME: should be private
 
