@@ -44,8 +44,10 @@ public:
 	void setBackBoard(Board *board);
 
 	void findSolution();
+	
+	void findDeadTiles();
 
-	SearchResult depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting);
+	SearchResult depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting, bool deadlockSearch=false);
 
 	string executeSolution();
 

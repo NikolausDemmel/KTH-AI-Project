@@ -34,14 +34,30 @@ struct Tile {
 	uint8_t static_type; // Logic combination of StaticType flags. Not all combinations are valid.
 	int box; // -1 or index in box-array
 	uint8_t flags;
+	bool isDeadLoc;
+	bool bckReachable;
+	bool fwdReachable;
 
 
 
 	explicit Tile(uint8_t static_type_ = Empty, int box_ = NoBox, uint8_t flags_ = 0):
 		static_type(static_type_),
 		box(box_),
-		flags(flags_)
+		flags(flags_),
+		isDeadLoc(false),
+		bckReachable(false),
+		fwdReachable(false)
 	{
+	}
+
+	inline void setDead() {
+		isDeadLoc = true;
+	}
+	inline void unsetDead() {
+		isDeadLoc = false;
+	}
+	inline bool isDead() const {
+		return isDeadLoc;
 	}
 
 	inline bool flagsSet(uint8_t mask) const {
@@ -70,6 +86,10 @@ struct Tile {
 
 	inline bool isGoal() const {
 		return static_type & Goal;
+	}
+
+	void eraseGoal() {
+		static_type &= ~Goal;
 	}
 
 	inline bool isFree() const {

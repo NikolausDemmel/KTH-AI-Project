@@ -88,15 +88,12 @@ private: // FIXME
 	// GAME SIMULATION
 	////////////////////////////////////////////////////////////////////////////////
 public: // FIXME
-
 	void simulateActions(const char* actions);
 	bool actionsForMove(string &actions, const Move &move) const;
 
 private: // FIXME
 	bool doAction(Dir toWhere);
-
 	void undoAction(Dir fromWhere, bool unPush);
-
 	bool shortestPathSearch(string &actions, index_t start, index_t end) const;
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +184,7 @@ public:
 
 	void printBoard(uint8_t printFlags = 0) const;
 
-	string boardToString(uint8_t printFlags = 0, const vector<TileGraphNode> * const nodes = 0) const;
+	string boardToString(uint8_t printFlags = 0, const vector<TileGraphNode> * const nodes = 0, bool print_dead=false) const;
 private:
 
 	void parseBoard(const char* board);
@@ -198,7 +195,7 @@ private:
 	static Tile parseTile(char c);
 
 	// character from tile ignoring the player, used e.g. for printing the board
-	static char tileCharacter(const Tile &t, const TileGraphNode * const node);
+	static char tileCharacter(const Tile &t, const TileGraphNode * const node, bool print_dead);
 
 	// FlagString returns the string-code for the color of the tile
 	// set colour if tile is visited, ...
@@ -282,7 +279,7 @@ public: // FIXME
 	//
 	// Since we do depth first search we don't need to copy the board, but
 	// rather do and undo moves. Thus we get no performance penalty from
-	// storing auxiliary information in the borad and we don't need to focus
+	// storing auxiliary information in the board and we don't need to focus
 	// on minimizing the size of the board data. With this in mind, we try to
 	// compute much supplimentry information about the current board state,
 	// that is needed in every step of the search, incrementally rather than
@@ -320,8 +317,9 @@ public: // FIXME
 	// Array of all boxes, so that we can avoid going through the whole board
 	// when we want to do some operation on all boxes.
 	vector<index_t> mBoxes;
+	vector<index_t> mGoals;
 
-	// This is an array if indices, to be potentially copied instead of
+	// This is an array of indices, to be potentially copied instead of
 	// modified. FIXME: actually maybe never copy; inverstigate...
 	index_t *mGroupInfo; // TODO: better name? TODO: use uint8_t ? TODO:
                          // evaluate: save group size ?
