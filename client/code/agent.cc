@@ -43,8 +43,14 @@ void Agent::findSolution()
 		cout << "[agent] log size of board " << mBoard->mIndexBits << endl;
 #endif
 
+		mBoard->updateHash(mBoard->mPlayerIndex);
+		mBoard->setPlayerIndex(mBoard->mInitialPlayerIndex);
+		mBoard->updateHash(mBoard->mPlayerIndex);
+		mBackBoard.updateHash(mBackBoard.mPlayerIndex);
+		mBackBoard.setPlayerIndex(0);
+		mBackBoard.updateHash(mBackBoard.mPlayerIndex);
 		resultForward = depthLimitedSearch(depth, mBoard, Forward, hashMeeting);
-		resultBackward = depthLimitedSearch(depth, &mBackBoard, Backward, hashMeeting);
+		resultBackward = depthLimitedSearch(depth*10, &mBackBoard, Backward, hashMeeting);
 		++depth;
 #ifdef INFO
 		cout << "[agent] search result for this depth: forward: " << cSearchResultNames[resultForward] << " ; backward: " << cSearchResultNames[resultBackward] << endl;
@@ -132,9 +138,10 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 	SearchResult result;
 
 	board->generateMoves(possible_moves, type);
+
 	foreach ( Move &move, possible_moves) {
 
-		//cout << "apply move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
+		//if(type == Backward) cout << "Applying move "<< move.toString(board) << endl;
 		board->applyMove(move, type);
 //		myBoard->PrintBoard();
 		//cout << "applied move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;

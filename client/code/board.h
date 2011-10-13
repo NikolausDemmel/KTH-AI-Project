@@ -227,8 +227,15 @@ public:
 	void getAllPlayerPosHashForward(vector<index_t> &possiblePlayerInd, vector<pair<uint64_t,uint64_t>> &hashes, bool hash);
 	void getAllPlayerPosHashBack(vector<index_t> &possiblePlayerInd, vector<pair<uint64_t,uint64_t>> &hashes, bool hash);
 
+
 	// computes an alternative hash value from scratch
 	uint64_t computeHash2Value();
+
+	// xor the number to the hash value
+	void updateHash(uint64_t zobristNumber);
+
+
+
 private:
 
 	// create the array of zobrist numbers with random numbers;
@@ -238,8 +245,6 @@ private:
 	uint64_t getZobristBox(index_t tile) const;
 	uint64_t getZobristPlayer(index_t tile) const;
 
-	// xor the number to the hash value
-	void updateHash(uint64_t zobristNumber);
 
 
 
