@@ -11,11 +11,11 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include <signal.h>
 #include "board.h"
 #include "csocket.h"
 #include "agent.h"
 
-#include "signal.h"
 
 
 namespace mnp {

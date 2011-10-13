@@ -60,7 +60,7 @@ void Agent::findSolution()
 	}*/
 
 	cout << "After search" << endl;
-	foreach(Move m, mSolutionMoves) {
+	foreach(Move &m, mSolutionMoves) {
 		cout << m.toString(mBoard);
 	}
 	mBoard->restoreInitialPlayerIndex();
