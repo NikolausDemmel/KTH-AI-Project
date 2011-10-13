@@ -238,7 +238,40 @@ void Board::generateMoves(vector<Move> &moves, SearchType type)
 		visitTile(mPlayerIndex, moves);
 	}
 	else {
-		reverseVisitTile(mPlayerIndex, moves);
+
+		//first iteration: do not use start pos of player...
+		vector<index_t> possiblePlayerInd;
+		if(mPlayerIndex == -1)
+		{
+			cout << "should only happen at the beginning!" << endl;
+			for(int i = 0; i<mTiles.size();i++)
+			{
+				if(mTiles[i].isGoal()){
+					foreach(Dir dir, cDirs){
+						index_t next = tileIndex(i, dir);
+						if(mTiles[next].isFree()){
+							possiblePlayerInd.push_back(next); // TODO: do not save same player pos several times
+						}
+					}
+				}
+			}
+			cout << "size of possible player indices " << possiblePlayerInd.size() << endl;
+			foreach(index_t tile, possiblePlayerInd){
+				vector<Move> tempmoves;
+				reverseVisitTile(tile, tempmoves);  // works quite good with our flags, moves are only once in the vector :)
+				cout << "size of tempmoves" << tempmoves.size() << endl;
+				foreach(Move move, tempmoves){
+					moves.push_back(move);
+				}
+				cout << "size of all moves" << moves.size() << endl;
+			}
+		}
+
+		else{
+			reverseVisitTile(mPlayerIndex, moves);
+		}
+
+
 	}
 
 #ifdef VERBOSE_GENERATE_MOVES
@@ -269,6 +302,7 @@ void Board::visitTile(index_t tile, vector<Move> &moves)
 
 void Board::reverseVisitTile(index_t tile, vector<Move> &moves)
 {
+
 	if ( !(mTiles[tile].flagsSet(Tile::VisitedFlag)) ) {
 		mTiles[tile].setFlags(Tile::VisitedFlag);
 		foreach (Dir dir, cDirs) {

@@ -40,7 +40,7 @@ void Agent::findSolution()
 	} while (resultForward == CutOff && resultBackward == CutOff);
 
 	if (resultBackward == SolutionMeeting && resultForward == CutOff) {
-		resultForward = depthLimitedSearch(depth--, mBoard, Forward, hashMeeting);
+		resultForward = depthLimitedSearch(--depth, mBoard, Forward, hashMeeting);
 	}
 
 	cout << "After search" << endl;
@@ -81,9 +81,9 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 					return SolutionMeeting;
 				}
 
-		if (mHashTable.lookup(mBoard->getHash(), depth))
+		else if (mHashTable.lookup(mBoard->getHash(), depth)){
 			return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
-
+		}
 
 	}
 	else {
@@ -97,7 +97,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 					return SolutionMeeting;
 				}
 
-		if (mBackwardHashTable.lookup(mBackBoard.getHash(), depth)) {
+		else if (mBackwardHashTable.lookup(mBackBoard.getHash(), depth)) {
 					return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 		}
 
@@ -160,6 +160,7 @@ void Agent::setBackBoard(Board *board) {
 			boxIndex++;
 		}
 	}
+	mBackBoard.mPlayerIndex = -1;
 	mBackBoard.recomputeHashValue();
 
 }

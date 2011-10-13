@@ -5,7 +5,7 @@ PORT=7777
 # 7778 trivial boards
 # 7781 and 7782 have similar difficulty to the ones used in evaluation
 
-BOARD=1
+BOARD=3
 LASTBOARD=100
 OPTIONS=
 #OPTIONS=playsol 10
