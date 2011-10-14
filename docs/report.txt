@@ -1,13 +1,14 @@
 Contents
 1. Representation
 	1.1. Board
-		We use an array of tiles (thats a class representing a field of the bird)  to represent the board. 
-		Position 0,0 corresponds to the bottom left cornern. Highest index is the top right corner.  Also, position x,y on the board
-		corresponds to the array index y*mWidth+x.  However internally we use only indices directly.
+		We use an array of tiles (thats a class representing a field of the board)  to represent the board. Position 0,0 corresponds to the bottom left cornern. Highest index is the top right corner.  Also, position x,y on the board corresponds to the array index y*mWidth+x.  However internally we use only indices directly.
 	1.2. Moves
-		- we use the word "move" only if a box gets pushed and not if just the warehouse keeper moves
-		- a move consists of the box position and the direction
-		- a move forward corresponds to push, a move backward to pull
+		A 'move' corresponds to a box push. And an 'action' corresponds to a step taken in Up, Down, Left or Right direction. So, in general, a move is an action (with a push) and an action may or may not be a move.
+		A move is completely defined by the box position (of the box moved) and the direction (of the push). To apply a move, we just move the box by one position in the given direction and the player to the old position of the box. To undo a move, we move the box to the old box position, where the player must be right now, and move the player to a tile in the direction opposite to the one described in the move. Thus, the player effectively 'pulls' the box back.
+	1.3 Action
+		As defined in the previous section, an action is a step taken in Up, Down, Left or Right direction. Its easy to detect if an action corresponds to move or not. It is done just by checking the future location of the player. If it has a box, this 'action' is a 'move' and we need to push the box.
+		However, it is not so simple to undo an 'action' as it does not give any information about the box. If a box is /facing the player/ we cannot say if the 'action' was a push 'move' or a simple 'action'. But since all the do and undo-action take place in pair, we save the information about an actions being a push in a boolean and use this to undo the action in future.
+
 	1.3. Data Structures
 	1.4. 
 2. Usage
@@ -18,16 +19,18 @@ Contents
 3. Algorithm
 	3.1. Move generation
 		- recursive
-		- forward: starting from player position and visit every field of the board, if there is a box on the field and the field after the box
-				(in the direction the box was found) is free, a move-object is generated.
-		- backward: starting from every possible player position (empty fields around boxes which are in goals), if neighbour field contains box and if the field on the 					opposite side of the visited tile is empty, generate move
+		- forward: starting from player position and visit every field of the board, if there is a box on the field and the field after the box (in the direction the box was found) is free, a move-object is generated.
+		- backward: starting from every possible player position (empty fields around boxes which are in goals), if neighbour field contains box and if the field on the opposite side of the visited tile is empty, generate move
 	3.2. Forward and Backward Search
 	3.3. Hashtable
 	3.4. Static Deadlocks
-	3.5. Freeze Deadlocks
+		Deadlock is a board configuration from where it is not possible to reach a solution. The most basic type of deadlocks are created with only one board. To find these, we first do a backward search with only one box, starting from every goal to the entire board and get a set of tiles that are back-reachable (from where one box can be pushed to a goal). Then we do a forward search again with only one box starting from every initial box position to get a set of forward reachable tiles (a box at any of the initial positions could possibly be pushed to only these tiles). Then we take the intersection of these two sets to get a set of safe tiles. All other tiles are deadlock. Since this tiles are always forbidden, they're called Static Deadlock.
 	3.6. Distance heuristic
-	3.7. Tunnels
+		We do a breadth first search starting from the set of goals and on each tile mark the distance from the closest goal. The least number of moves (defined as box pushes) required to push all the boxes into goals is given by the sum of this distance-from-closest-goal for all the boxes' tiles.
+
 4. Future Scope
 	4.1. Reachable Area
+	3.5. Freeze Deadlocks
+	3.7. Tunnels
 	4.2. Corral Deadlocks
 	4.3. Finer Optimisations
