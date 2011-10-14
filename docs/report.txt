@@ -1,15 +1,26 @@
 Contents
 1. Representation
 	1.1. Board
+		We use an array of tiles (thats a class representing a field of the bird)  to represent the board. 
+		Position 0,0 corresponds to the bottom left cornern. Highest index is the top right corner.  Also, position x,y on the board
+		corresponds to the array index y*mWidth+x.  However internally we use only indices directly.
 	1.2. Moves
+		- we use the word "move" only if a box gets pushed and not if just the warehouse keeper moves
+		- a move consists of the box position and the direction
+		- a move forward corresponds to push, a move backward to pull
 	1.3. Data Structures
 	1.4. 
 2. Usage
 	2.1. Compile
 	2.2. Find Solution
+		use Dijkstra algorithm to find the shortest way for the player between two boxes/moves
 	2.3. Play Solution
 3. Algorithm
 	3.1. Move generation
+		- recursive
+		- forward: starting from player position and visit every field of the board, if there is a box on the field and the field after the box
+				(in the direction the box was found) is free, a move-object is generated.
+		- backward: starting from every possible player position (empty fields around boxes which are in goals), if neighbour field contains box and if the field on the 					opposite side of the visited tile is empty, generate move
 	3.2. Forward and Backward Search
 	3.3. Hashtable
 	3.4. Static Deadlocks
