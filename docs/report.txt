@@ -30,7 +30,10 @@ Contents
 
 4. Future Scope
 	4.1. Reachable Area
+		We started some work on maintaining a set of tiles reachable from the current position of the player. This could help in more efficient move generation and hashing.
 	3.5. Freeze Deadlocks
+		The second most important deadlocks that could be easily codded logically and cover a general class of boards is Freeze Deadlocks. These are created when two or more Boxes get alligned in such a manner that none of them could be moved. We had an algorithm for it but due to time constraints, we could not implement it in our program.
 	3.7. Tunnels
+		Tunnels and in general, no-effect pushes can be discovered and taken care of and this could help us decrease the branching factor manifolds in some boards. These are very useful in certain special boards which take a lot of time to solve presently. We planned to cascade the moves that constituted a tunnel push and generate apply-move, undo-move, shortest-path between moves (moves to actions) recursively.
 	4.2. Corral Deadlocks
-	4.3. Finer Optimisations
+		Corral Deadlocks are generated when there are regions created in the board that cannot be reached by the player. We did not have concrete plans to implement these in our algorithm, but this would have made our algorithm near-perfect.
