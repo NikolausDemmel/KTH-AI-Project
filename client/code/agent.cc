@@ -43,7 +43,7 @@ void Agent::findSolution()
 
 	SearchResult resultForward, resultBackward;
 	uint depth = 1;
-	uint maxdepth = 10;
+	uint maxdepth = 65;
 	uint64_t hashMeeting = 0;
 
 	typedef pair<uint64_t, uint64_t> hashpair;
@@ -151,6 +151,9 @@ void Agent::findDeadTiles() {
 	for (vector<Tile>::iterator it = mBoard->mTiles.begin(); it != mBoard->mTiles.end(); ++it) {
 		it->setDead();
 	}
+	for (vector<Tile>::iterator it = mBackBoard.mTiles.begin(); it != mBackBoard.mTiles.end(); ++it) {
+		it->setDead();
+	}
 	for (vector<Tile>::iterator it = playBoard.mTiles.begin(); it != playBoard.mTiles.end(); ++it) {
 			if (it->isBox()) {
 				it->removeBox();
@@ -243,9 +246,13 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 
 		if(deadlockSearch) {
 			mBoard->mTiles[board->mBoxes[0]].fwdReachable = true;
+			mBackBoard.mTiles[board->mBoxes[0]].fwdReachable = true;
 			//cout<<board->mBoxes[0]<<" "<<board->getHash()<<"\n";
-				if(mBoard->mTiles[board->mBoxes[0]].bckReachable == true) {
+			if(mBoard->mTiles[board->mBoxes[0]].bckReachable == true) {
 				mBoard->mTiles[board->mBoxes[0]].isDeadLoc = false;
+			}
+			if(mBackBoard.mTiles[board->mBoxes[0]].bckReachable == true) {
+				mBackBoard.mTiles[board->mBoxes[0]].isDeadLoc = false;
 			}
 		} else {
 			
@@ -274,9 +281,13 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 
 		if(deadlockSearch){
 			mBoard->mTiles[board->mBoxes[0]].bckReachable = true;
+			mBackBoard.mTiles[board->mBoxes[0]].bckReachable = true;
 			//cout<<board->mBoxes[0]<<" ";
 			if(mBoard->mTiles[board->mBoxes[0]].fwdReachable == true) {
 				mBoard->mTiles[board->mBoxes[0]].isDeadLoc = false;
+			}
+			if(mBackBoard.mTiles[board->mBoxes[0]].fwdReachable == true) {
+				mBackBoard.mTiles[board->mBoxes[0]].isDeadLoc = false;
 			}
 		}
 
