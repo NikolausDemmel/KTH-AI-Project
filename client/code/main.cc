@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "client.h"
+#include "common.h"
 
 using namespace std;
 
@@ -37,7 +38,7 @@ int main(int pArgC, char* pArgs[])
 
 		client.setPlaySolution(playsol);
 		if (timeout > 0)
-			client.setTimeout(timeout);
+			mnp::setTimeoutVal(timeout);
 
 		if(string(pArgs[1]) == "-f") {
 			client.initBoardFromFile(pArgs[2], pArgs[3]);

@@ -51,7 +51,7 @@ public:
 	
 	void findDeadTiles();
 
-	SearchResult depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting, bool deadlockSearch=false);
+	SearchResult depthLimitedSearch(uint remaining_depth, uint current_depth, Board *board, SearchType type, uint64_t &hashMeeting, bool deadlockSearch=false);
 
 	string executeSolution();
 

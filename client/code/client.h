@@ -21,11 +21,6 @@
 namespace mnp {
 
 
-void timeout_handler (int i) {
-	cout << "[timeout] exiting..." << endl;
-	cout.flush();
-	exit(-3);
-}
 
 
 class Client
@@ -37,7 +32,8 @@ public:
 		mSocket(0),
 		mPlaySolution(false)
 	{
-		signal(SIGALRM,timeout_handler);
+		reset_timeout_flag();
+		signal(SIGALRM,timeout_handler_soft);
 	}
 
 	~Client()
@@ -48,26 +44,8 @@ public:
 			delete mSocket;
 	}
 
-	void disableTimer() {
-		setitimer(ITIMER_REAL, 0, 0);
-	}
-
-	void enableTimer(uint seconds) {
-		struct itimerval diff;
-        diff.it_interval.tv_sec = 0;
-        diff.it_interval.tv_usec = 0;
-        diff.it_value.tv_sec = seconds;
-        diff.it_value.tv_usec = 0;
-
-		setitimer(ITIMER_REAL, &diff, 0);
-	}
-
 	void setPlaySolution(bool playsol) {
 		mPlaySolution = playsol;
-	}
-
-	void setTimeout(uint timeout) {
-		mTimeout = timeout;
 	}
 
 	void initBoardFromFile(string filename, string board) {
@@ -100,6 +78,7 @@ public:
 	void run()
 	{
 
+
 	    cerr << "[client] running client with board" << endl;
 		cerr << mBoard->boardToString();
 
@@ -107,8 +86,6 @@ public:
 	    agent.setBoard(mBoard);
         agent.setBackBoard(mBoard);
 
-	    if (mTimeout > 0)
-	    	enableTimer(mTimeout);
 	    cout << "[client] searching for solution" << endl;
 	    agent.findSolution();
 	    cout << "[client] found solution" << endl;
@@ -143,7 +120,6 @@ public:
 
 private:
 
-	uint mTimeout;
 	Board *mBoard;
 	soko::CSocket *mSocket;
 	bool mPlaySolution;

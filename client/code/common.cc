@@ -67,6 +67,56 @@ Rand64 gRand64;
 uint64_t rand64() {
 	return gRand64.rand();
 }
+
+
+bool gTimeout = false;
+
+
+void reset_timeout_flag() {
+	gTimeout = false;
+}
+
+void timeout_handler_soft (int i) {
+	gTimeout = true;
+}
+
+void check_timeout() {
+	if(gTimeout) {
+		throw timeout_exception();
+	}
+}
+
+void disableTimer() {
+	setitimer(ITIMER_REAL, 0, 0);
+}
+
+int gTimeoutVal = 0;
+
+void setTimeoutVal(int val) {
+	gTimeoutVal = val;
+}
+
+int getTimeoutVal() {
+	return gTimeoutVal;
+}
+
+void enableTimer(uint seconds) {
+	struct itimerval diff;
+    diff.it_interval.tv_sec = 0;
+    diff.it_interval.tv_usec = 0;
+    diff.it_value.tv_sec = seconds;
+    diff.it_value.tv_usec = 0;
+
+	setitimer(ITIMER_REAL, &diff, 0);
+}
+
+void timeout_handler_hard (int i) {
+	cout << "[timeout] exiting..." << endl;
+	cout.flush();
+	exit(-3);
+}
+
+
 //
 //struct Rand64 {
 //
