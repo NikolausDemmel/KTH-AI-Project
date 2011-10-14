@@ -15,6 +15,7 @@ void Agent::findSolution()
 
 	SearchResult resultForward, resultBackward;
 	uint depth = 1;
+	uint maxdepth = 90;
 	uint64_t hashMeeting = 0;
 
 	typedef pair<uint64_t, uint64_t> hashpair;
@@ -38,28 +39,57 @@ void Agent::findSolution()
 
 	do {
 #ifdef INFO
+		cout << "[agent - backward] trying depth " << depth << endl;
+#endif
+		mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+		mBackBoard.setPlayerIndex(0);
+		mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+		resultBackward = depthLimitedSearch(depth, &mBackBoard, Backward, hashMeeting);
+				++depth;
+#ifdef INFO
+		cout << "[agent] search result for this depth: backward: " << cSearchResultNames[resultBackward] << endl;
+		//mHashTable.printStatistics();
+		mBackwardHashTable.printStatistics();
+#endif
+		//mHashTable.clearStatistic();
+		mBackwardHashTable.clearStatistic();
+	} while(depth < maxdepth && resultBackward == CutOff);
+
+
+		depth = 1;
+		do {
+#ifdef INFO
 		cout << "[agent] trying depth " << depth << endl;
 		cout << "[agent] # of boxes " << mBoard->mBoxes.size() << endl;
 		cout << "[agent] log size of board " << mBoard->mIndexBits << endl;
 #endif
 
-		mBoard->updateHash(mBoard->mPlayerIndex);
-		mBoard->setPlayerIndex(mBoard->mInitialPlayerIndex);
-		mBoard->updateHash(mBoard->mPlayerIndex);
-		mBackBoard.updateHash(mBackBoard.mPlayerIndex);
-		mBackBoard.setPlayerIndex(0);
-		mBackBoard.updateHash(mBackBoard.mPlayerIndex);
+		//mBoard->updateHash(mBoard->mZobristPlayer[mBackBoard.mPlayerIndex]);
+		//mBoard->setPlayerIndex(mBoard->mInitialPlayerIndex);
+		//mBoard->updateHash(mBoard->mZobristPlayer[mBackBoard.mPlayerIndex]);
 		resultForward = depthLimitedSearch(depth, mBoard, Forward, hashMeeting);
-		resultBackward = depthLimitedSearch(depth*10, &mBackBoard, Backward, hashMeeting);
-		++depth;
+		depth++;
+
 #ifdef INFO
-		cout << "[agent] search result for this depth: forward: " << cSearchResultNames[resultForward] << " ; backward: " << cSearchResultNames[resultBackward] << endl;
+		cout << "[agent] search result for this depth: forward: " << cSearchResultNames[resultForward] << endl;
 		mHashTable.printStatistics();
-		mBackwardHashTable.printStatistics();
+		//mBackwardHashTable.printStatistics();
 #endif
 		mHashTable.clearStatistic();
-		mBackwardHashTable.clearStatistic();
+		//mBackwardHashTable.clearStatistic();
 	} while (resultForward == CutOff);
+
+
+
+		if(resultForward == SolutionMeeting){
+			//mBackwardHashTable.clear();
+			mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+			mBackBoard.setPlayerIndex(0);
+			mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+			cout << "call last backwardsearch with maxdepth+1 and hashmeeting " << hashMeeting << endl;
+			resultBackward = depthLimitedSearch(maxdepth+1, &mBackBoard, Backward, hashMeeting);
+		}
+
 
 
 	cout << "After search" << endl;
@@ -113,7 +143,6 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 
 		if (hashMeeting != 0) {
 			if(hashMeeting == mBackBoard.computeHash2Value()){
-				cout << "hashmeeting ok, index is " << mBackBoard.getPlayerIndex() << endl;
 				cout << "hashmeeting  " << hashMeeting << endl;
 				cout << "BackwardHash in hashmeeting: " << mBackBoard.getHash() << " at index " << mBackBoard.getPlayerIndex() << endl;
 				cout << "BackwardHash computed in hashmeeting: " << mBackBoard.computeHashValue() << endl;
