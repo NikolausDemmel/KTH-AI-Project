@@ -41,7 +41,7 @@ run-opt: client-opt
 test: client-opt
 	rm -f tmp_pipe1___
 	mkfifo tmp_pipe1___
-	(for i in {$(BOARD)..$(LASTBOARD)} ; do echo ">>> $$i" 1>&2 && $(MAKE) \
+	(for i in `seq $(BOARD) $(LASTBOARD)` ; do echo ">>> $$i" 1>&2 && $(MAKE) \
 			run-opt SERVER=$(SERVER) PORT=$(PORT) BOARD=$$i OPTIONS=$(TIMEOUT) \
 			| tee -a test-boards.log | grep "CORRECT\|timeout" ; done && \
 			echo "Number of boards solved in under $$TIMEOUT seconds:" ) 2>&1 \
