@@ -43,7 +43,7 @@ void Agent::findSolution()
 
 	SearchResult resultForward, resultBackward;
 	uint depth = 1;
-	uint maxdepth = 65;
+	uint maxdepth = 30;
 	uint64_t hashMeeting = 0;
 
 	typedef pair<uint64_t, uint64_t> hashpair;
