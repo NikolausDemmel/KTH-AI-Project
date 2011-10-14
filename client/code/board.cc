@@ -60,7 +60,7 @@ void Board::printBoard(uint8_t print_flags) const {
 }
 
 //creates a String that can be printed
-string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * const nodes) const
+string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * const nodes, bool print_dead, bool print_dist) const
 {
 	stringstream board;
 	for(int y = mHeight-1; y >= 0; --y) {
@@ -73,7 +73,7 @@ string Board::boardToString(uint8_t printFlags, const vector<TileGraphNode> * co
 				else
 					board << '@';
 			else
-				board << tileCharacter(mTiles[index], (nodes ? &(nodes->at(index)) : 0));
+				board << tileCharacter(mTiles[index], (nodes ? &(nodes->at(index)) : 0), print_dead, print_dist);
 			board << endFlagString(printFlags);
 		}
 		board << '\n';
@@ -330,7 +330,7 @@ void Board::visitTile(index_t tile, vector<Move> &moves)
 		mTiles[tile].setFlags(Tile::VisitedFlag);
 		foreach (Dir dir, cDirs) {
 			index_t next = tileIndex(tile, dir);
-			if (mTiles[next].isBox() && mTiles[tileIndex(next, dir)].isFree()) {
+			if (mTiles[next].isBox() && mTiles[tileIndex(next, dir)].isFree() && !mTiles[tileIndex(next, dir)].isDead()) {
 				mTiles[tile].setFlags(Tile::ExtraFlag);
 				moves.push_back(Move(next, dir));
 			} else if (mTiles[next].isFree()) {
@@ -347,7 +347,7 @@ void Board::reverseVisitTile(index_t tile, vector<Move> &moves)
 		mTiles[tile].setFlags(Tile::VisitedFlag);
 		foreach (Dir dir, cDirs) {
 			index_t next = tileIndex(tile, dir);
-			if (mTiles[next].isBox() && mTiles[tileIndex(tile, invertDirection(dir))].isFree()) {
+			if (mTiles[next].isBox() && mTiles[tileIndex(tile, invertDirection(dir))].isFree() && !mTiles[tile].isDead()) {
 				mTiles[tile].setFlags(Tile::ExtraFlag);
 				moves.push_back(Move(next, invertDirection(dir)));
 			} else if (mTiles[next].isFree()) {
@@ -372,6 +372,7 @@ void Board::parseBoard(const char* board) {
 	// TODO: detect malformed boards and throw error
 
 	mBoxes.clear();
+	mGoals.clear();
 	mWidth = 0;
 	mHeight = 0;
 
@@ -410,6 +411,9 @@ void Board::parseBoard(const char* board) {
 			if (board[i] == '$' || board[i] == '*') {
 				mTiles[tile].box = mBoxes.size(); // set the number of the box to the index on the mBoxes list
 				mBoxes.push_back(tile);
+			}
+			if (board[i] == '.' || board[i] == '+' || board[i] == '*') {
+				mGoals.push_back(tile);
 			}
 			if (board[i] == '@' || board[i] == '+') {
 				setPlayerIndex(tile);
@@ -451,16 +455,24 @@ Tile Board::parseTile(char c) {
 }
 
 // character from tile ignoring the player
-char Board::tileCharacter(const Tile &tile, const TileGraphNode * const node) {
+char Board::tileCharacter(const Tile &tile, const TileGraphNode * const node, bool print_dead, bool print_dist) {
 	switch(tile.static_type) {
 	case Tile::Empty:
 		if (tile.isBox())
 			return '$';
 		else {
-			if (node)
+			if (node) {
 				return '0' + node->distance;
-			else
+			}
+			else{
+
+				if(print_dead &&tile.isDead())
+					return '-';
+				if(print_dist) {
+					return tile.distanceClosestGoal%10 + '0';
+				} else
 				return ' ';
+			}
 		}
 	case Tile::Wall:
 		return '#';
