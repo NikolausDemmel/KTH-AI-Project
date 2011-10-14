@@ -20,13 +20,15 @@ typedef uint64_t ht_entry_t;
 class HashTable
 {
 public:
-	HashTable(int sizeInBits) {
+	HashTable(uint sizeInBits) {
 		assert(sizeInBits > 0);
 		assert(sizeInBits <= 63); // even 63 will be much too big anyway, but never mind
+		mSizeInBits = sizeInBits;
 		mSize = 1 << sizeInBits;
 		mHashMask = mSize-1;
 		mTable = new uint64_t[mSize];
-		mDepthTable = new uint8_t[mSize];
+		mRemainingDepthTable = new uint16_t[mSize];
+		mDepthTable = new uint16_t[mSize];
 		clear();
 	}
 
@@ -51,7 +53,8 @@ public:
 		mCollisionEntries = 0;
 #endif
 		memset(mTable, 0, mSize*sizeof(uint64_t));
-		memset(mDepthTable, 0, mSize*sizeof(uint8_t));
+		memset(mRemainingDepthTable, 0, mSize*sizeof(uint16_t));
+		memset(mDepthTable, 0, mSize*sizeof(uint16_t));
 	}
 
 	uint64_t getIndex(uint64_t hash) const {
@@ -62,11 +65,45 @@ public:
 		return mTable[getIndex(hash)];
 	}
 
-	uint8_t getDepthValue(uint64_t hash) const {
+	uint64_t lookupDepthValue(uint64_t hash) const {
+		uint64_t index = getIndex(hash);
+		uint64_t value = mTable[index];
+
+		uint64_t validation_hash = hash;
+
+		if (value == 0) {
+			return 0;
+		}
+		if (value == validation_hash) {
+			return getDepthValue(index);
+		}
+
+		int64_t new_index;
+
+		for (uint i = 1;; i++) {
+			if (i + mSizeInBits > 64) {
+				return 0;
+			}
+			new_index = getIndex(index >> i);
+			if (mTable[new_index] == 0) {
+				return 0;
+			}
+			value = mTable[new_index];
+			if (value == validation_hash) {
+				return getDepthValue(new_index);
+			}
+		}
+	}
+
+	uint16_t getRemainingDepthValue(uint64_t hash) const {
+		return mRemainingDepthTable[getIndex(hash)];
+	}
+
+	uint16_t getDepthValue(uint64_t hash) const {
 		return mDepthTable[getIndex(hash)];
 	}
 
-	bool lookup(uint64_t hash, uint8_t remaining_depth, uint64_t validation_hash = 0) {
+	bool lookup(uint64_t hash, uint16_t remaining_depth, uint16_t current_depth, uint64_t validation_hash = 0) {
 //#ifdef DEBUG
 //		cout << "lookup on hash: " << hash << endl;
 //#endif
@@ -89,12 +126,17 @@ public:
 			++mMisses;
 #endif
 			mTable[index] = validation_hash;
-			mDepthTable[index] = remaining_depth;
+			mRemainingDepthTable[index] = remaining_depth;
+			if (current_depth > 0)
+				mDepthTable[index] = current_depth;
 			return false;
 		}
 		if (value == validation_hash) {
-			if (mDepthTable[index] < remaining_depth) {
-				mDepthTable[index] = remaining_depth;
+			if (mRemainingDepthTable[index] < remaining_depth) {
+				mRemainingDepthTable[index] = remaining_depth;
+				if (current_depth > 0)
+					mDepthTable[index] = current_depth;
+				//mDepthTable[index] = current_depth;
 #ifdef INFO
 				++mMissesBecauseDepth;
 #endif
@@ -119,14 +161,13 @@ public:
 		int64_t new_index;
 
 		for (uint i = 1;; i++) {
-			if (i > 10) { //hashtable is quite full
+			if (i + mSizeInBits > 64) {
 #ifdef INFO
 				++mMissesBecauseOverlap;
 #endif
 				return false;
 			}
-			//cout << "i: " << i << endl;
-			new_index = (index + i*i) % mSize; //TODO: hash +c*i² +c mod x
+			new_index = getIndex(index >> i);
 			//cout << "neuer Index: " << new_index << endl;
 			if (mTable[new_index] == 0) {
 #ifdef INFO
@@ -134,14 +175,19 @@ public:
 				++mCollisionEntries;
 #endif
 				mTable[new_index] = validation_hash;
-				mDepthTable[new_index] = remaining_depth;
+				mRemainingDepthTable[new_index] = remaining_depth;
+				if (current_depth > 0)
+					mDepthTable[new_index] = current_depth;
 				//cout << "stored" << endl;
 				return false;
 			}
 			value = mTable[new_index];
 			if (value == validation_hash) {
-				if (mDepthTable[new_index] < remaining_depth) {
-					mDepthTable[new_index] = remaining_depth;
+				if (mRemainingDepthTable[new_index] < remaining_depth) {
+					mRemainingDepthTable[new_index] = remaining_depth;
+					if (current_depth > 0)
+						mDepthTable[new_index] = current_depth;
+					//mDepthTable[new_index] = current_depth;
 #ifdef INFO
 					++mCollisionMissesBecauseDepth;
 #endif
@@ -174,11 +220,10 @@ public:
 		int64_t new_index;
 
 		for (uint i = 1;; i++) {
-			if (i > 10) { //hashtable is quite full
+			if (i + mSizeInBits > 64) {
 				return false;
 			}
-			//cout << "i: " << i << endl;
-			new_index = (index + i*i) % mSize; //TODO: hash +c*i² +c mod x
+			new_index = getIndex(index >> i);
 			//cout << "neuer Index: " << new_index << endl;
 			if (mTable[new_index] == 0) {
 				return false;
@@ -211,8 +256,10 @@ public:
 
 private:
 	uint64_t *mTable;
-	uint8_t *mDepthTable;
+	uint16_t *mRemainingDepthTable;
+	uint16_t *mDepthTable;
 	uint64_t mSize;
+	uint mSizeInBits;
 	uint64_t mHashMask;
 
 #ifdef INFO

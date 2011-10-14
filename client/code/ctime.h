@@ -98,7 +98,7 @@ public:
     static CTime GetCurrent()
     {
         struct timeval lTime;
-        gettimeofday(&lTime,NULL);
+        gettimeofday(&lTime,0);
         return CTime(int64_t(lTime.tv_sec)*1000000L+lTime.tv_usec);
     }
     

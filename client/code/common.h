@@ -16,6 +16,21 @@
 #include <limits>
 #include "definitions.h"
 #include <iostream>
+#include <exception>
+#include <iostream>
+#include <cstdlib>
+#include <signal.h>
+
+#include <stdint.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <Windows.h>
+#include <time.h>
+#else
+#include <sys/time.h>
+#endif
 
 
 
@@ -42,6 +57,31 @@ Dir invertDirection(Dir dir);
 char directionToAction(Dir dir);
 
 uint64_t rand64();
+
+
+
+// TIMEOUT
+class timeout_exception: public std::exception
+{
+public:
+	virtual const char* what() const throw()
+	{
+		return "Timeout";
+	}
+};
+
+void setTimeoutVal(int val);
+int getTimeoutVal();
+
+void reset_timeout_flag();
+void timeout_handler_soft (int i);
+void check_timeout();
+void timeout_handler_hard (int i);
+
+void disableTimer();
+
+void enableTimer(uint seconds) ;
+
 
 };
 

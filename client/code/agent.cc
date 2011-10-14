@@ -43,7 +43,7 @@ void Agent::findSolution()
 
 	SearchResult resultForward, resultBackward;
 	uint depth = 1;
-	uint maxdepth = 30;
+	uint maxdepth = 1000;
 	uint64_t hashMeeting = 0;
 
 	typedef pair<uint64_t, uint64_t> hashpair;
@@ -64,33 +64,64 @@ void Agent::findSolution()
 	// get all hashes for playerpos at beginning of backward search
 	mBoard->getAllPlayerPosHashForward(forwardpos, forwardhashes, true);
 	foreach(hashpair hashf, forwardhashes) {
-		mHashTable.lookup(hashf.first, 0); //depth = 0?
+		mHashTable.lookup(hashf.first, 0, 0); //depth = 0?
 		cout << " put hashes in forwardhash " << hashf.first << ", " << hashf.second <<  endl;
 	}
 	mBackBoard.getAllPlayerPosHashBack(possiblePlayerInd, backwardhashes, true);
 	foreach(hashpair hashb, backwardhashes){
-		mBackwardHashTable.lookup(hashb.first,0); //depth = 0?
+		mBackwardHashTable.lookup(hashb.first, 0, 0); //depth = 0?
 		cout << " put hashes in backwardhash " << hashb.first << ", " << hashb.second <<  endl;
 	}
 
-	do {
-#ifdef INFO
-		cout << "[agent - backward] trying depth " << depth << endl;
-#endif
-		mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
-		mBackBoard.setPlayerIndex(0);
-		mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
-		resultBackward = depthLimitedSearch(depth, &mBackBoard, Backward, hashMeeting);
-		backDepthChecked = depth;
-		++depth;
-#ifdef INFO
-		cout << "[agent] search result for this depth: backward: " << cSearchResultNames[resultBackward] << endl;
-		//mHashTable.printStatistics();
-		mBackwardHashTable.printStatistics();
-#endif
-		//mHashTable.clearStatistic();
-		mBackwardHashTable.clearStatistic();
-	} while(depth < maxdepth && resultBackward == CutOff);
+	if (getTimeoutVal() == 0) {
+		cout << "[agent] setting timeout for backward search to " << 20 << endl;
+		enableTimer(20);
+	} else {
+		cout << "[agent] setting timeout for backward search to " << getTimeoutVal() /3 << endl;
+		enableTimer(getTimeoutVal() /3);
+	}
+
+	try {
+
+		do {
+	#ifdef INFO
+			cout << "[agent - backward] trying depth " << depth << endl;
+	#endif
+			mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+			mBackBoard.setPlayerIndex(0);
+			mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+			resultBackward = depthLimitedSearch(depth, 1, &mBackBoard, Backward, hashMeeting);
+			backDepthChecked = depth;
+			++depth;
+
+
+			check_timeout();
+
+	#ifdef INFO
+			cout << "[agent] search result for this depth: backward: " << cSearchResultNames[resultBackward] << endl;
+			//mHashTable.printStatistics();
+			mBackwardHashTable.printStatistics();
+	#endif
+			//mHashTable.clearStatistic();
+			mBackwardHashTable.clearStatistic();
+		} while(depth < maxdepth && resultBackward == CutOff);
+
+
+		disableTimer();
+	} catch(std::exception &e) {
+		cout << "\t\t\t\t\tException: " << e.what() << endl;
+		cout << "\t\t\t\t\tEnd of Backward Search" << endl;
+		reset_timeout_flag();
+	}
+
+
+	signal(SIGALRM,timeout_handler_hard);
+	if (getTimeoutVal()  == 0) {
+		cout << "[agent] no timeout for forward search" << endl;
+	} else {
+		cout << "[agent] setting timeout for forward search to " << (getTimeoutVal() *2)/3 << endl;
+		enableTimer((getTimeoutVal() *2)/3);
+	}
 
 
 	depth = 1;
@@ -104,9 +135,11 @@ void Agent::findSolution()
 		//mBoard->updateHash(mBoard->mZobristPlayer[mBackBoard.mPlayerIndex]);
 		//mBoard->setPlayerIndex(mBoard->mInitialPlayerIndex);
 		//mBoard->updateHash(mBoard->mZobristPlayer[mBackBoard.mPlayerIndex]);
-		resultForward = depthLimitedSearch(depth, mBoard, Forward, hashMeeting);
+		resultForward = depthLimitedSearch(depth, 1, mBoard, Forward, hashMeeting);
 		fwdDepthChecked = depth;
 		++depth;
+
+
 
 #ifdef INFO
 		cout << "[agent] search result for this depth: forward: " << cSearchResultNames[resultForward] << endl;
@@ -119,14 +152,14 @@ void Agent::findSolution()
 
 
 
-		if(resultForward == SolutionMeeting){
-			//mBackwardHashTable.clear();
-			mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
-			mBackBoard.setPlayerIndex(0);
-			mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
-			cout << "call last backwardsearch with maxdepth+1 and hashmeeting " << hashMeeting << endl;
-			resultBackward = depthLimitedSearch(maxdepth+1, &mBackBoard, Backward, hashMeeting);
-		}
+	if(resultForward == SolutionMeeting){
+		//mBackwardHashTable.clear();
+		mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+		mBackBoard.setPlayerIndex(0);
+		mBackBoard.updateHash(mBackBoard.mZobristPlayer[mBackBoard.mPlayerIndex]);
+		cout << "call last backwardsearch with maxdepth+1 and hashmeeting " << hashMeeting << endl;
+		resultBackward = depthLimitedSearch(backDepthChecked+1, 1, &mBackBoard, Backward, hashMeeting);
+	}
 
 
 
@@ -182,7 +215,7 @@ void Agent::findDeadTiles() {
 				//playBoard.printBoard();
 				
 				uint64_t dump = 0;
-				bres = depthLimitedSearch(10000, &playBoard, Backward, dump, true);
+				bres = depthLimitedSearch(10000, 1, &playBoard, Backward, dump, true);
 				//if(bres == CutOff) cout<<"cutoff"<<endl;
 				
 			}
@@ -206,7 +239,7 @@ void Agent::findDeadTiles() {
 				//playBoard.printBoard();
 				
 				uint64_t dump = 0;
-				fres = depthLimitedSearch(10000, &playBoard, Forward, dump, true);
+				fres = depthLimitedSearch(10000, 1, &playBoard, Forward, dump, true);
 				
 				
 			}
@@ -230,11 +263,13 @@ void Agent::findDeadTiles() {
 }
 
 
-SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type, uint64_t &hashMeeting, bool deadlockSearch)
+SearchResult Agent::depthLimitedSearch(uint remaining_depth, uint current_depth, Board *board, SearchType type, uint64_t &hashMeeting, bool deadlockSearch)
 {
+
+
 	//if(deadlockSearch) cout<< (int) board->mBoxes[0] <<" ";
 	// 1. Base Cases
-	if (depth == 0){
+	if (remaining_depth == 0){
 		return CutOff;
 	}
 
@@ -257,7 +292,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 		} else {
 			
 			//cout<<"Minimum Depth Reqd:"<<mBoard->minMovesReqd()<<" given Depth:"<<depth<<" back Checked:"<<backDepthChecked<<" break:"<<(mBoard->minMovesReqd() > depth+backDepthChecked)<<endl;
-			if(mBoard->minMovesReqd() > depth+backDepthChecked) return CutOff;
+			if(mBoard->minMovesReqd() > remaining_depth+backDepthChecked) return CutOff;
 		}
 		if (mBackwardHashTable.compare(board->getHash())) {
 			if(deadlockSearch) {
@@ -265,7 +300,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 				//	return CutOff;
 				//}
 			} else {
-				mHashTable.lookup(board->getHash(), depth); // FIXME: necessary?
+				mHashTable.lookup(board->getHash(), remaining_depth, current_depth); // FIXME: necessary?
 				cout << "ForwardHash: " << board->getHash() << " at index " << board->getPlayerIndex() << endl;
 				hashMeeting = board->getHash();
 				return SolutionMeeting;
@@ -273,7 +308,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 		}
 
 
-		if (mHashTable.lookup(board->getHash(), depth)){
+		if (mHashTable.lookup(board->getHash(), remaining_depth, current_depth)){
 			return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 		}
 
@@ -299,7 +334,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 			}
 		}
 
-		if (mBackwardHashTable.lookup(board->getHash(), depth)) {
+		if (mBackwardHashTable.lookup(board->getHash(), remaining_depth, current_depth)) {
 			return CutOff; // FIXME: do we need to store CutOff vs Failure in the hash table?
 		}
 	}
@@ -322,7 +357,7 @@ SearchResult Agent::depthLimitedSearch(uint depth, Board *board, SearchType type
 		board->applyMove(move, type);
 //		myBoard->PrintBoard();
 		//cout << "applied move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
-		result = depthLimitedSearch(depth-1, board, type, hashMeeting, deadlockSearch);
+		result = depthLimitedSearch(remaining_depth-1, current_depth+1, board, type, hashMeeting, deadlockSearch);
 		board->undoMove(move, type);
 		//cout << "undone move with playerindex " << board->getPlayerIndex() << " hash " << board->getHash() << endl;
 
