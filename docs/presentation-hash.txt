@@ -1,0 +1,25 @@
+* 64 bit hash value to represent board configurations (box and player positions)
+* Hash table of seen configurations
+  * size = number of entries = 2^26 
+  * index = position in hash table = hash_value MOD size
+  * each entry stores hash (64 bit) and remaining search depth (8 bit)
+  * ca 600 MB, usually not more than 10% filled
+* During search:
+  * look up every board in the hash table first
+  * IF remaining depth > depth stored in hash table
+	* THEN update depth in hash table and continue search
+	* ELSE discard board
+  * keep entries between interations of increasing depth
+
+* How do we calculate a hash value for each board?
+  * Zobrist hash, well suited for board game situation
+  * For each tile on the board, have two fixed 64 bit random numbers (box and player)
+  * XOR for all boxes the random number of their tile, and for the player's tile
+* Properties:
+  * uniform (collisions unlikely)
+  * computed incrementally (xor is self inverse, associative and commutative)
+  
+* Collision avoidance
+  * 64 bit hash considered unique
+  * collisions in 26 bit index possible
+  * 38 alternative indices: (hash_value >> 1) MOD size, (hash_value >> 2) MOD size, ...
